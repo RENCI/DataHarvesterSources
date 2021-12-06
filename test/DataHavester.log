@@ -1,0 +1,60 @@
+2021-12-06 18:10:37,133 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8410140 
+2021-12-06 18:10:38,710 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8413320 
+2021-12-06 18:10:39,810 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8418150 
+2021-12-06 18:10:40,656 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8419317 
+2021-12-06 18:10:41,789 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8443970 
+2021-12-06 18:10:42,740 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8447930 
+2021-12-06 18:10:43,749 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8449130 
+2021-12-06 18:10:45,042 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8461490 
+2021-12-06 18:10:46,172 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8465705 
+2021-12-06 18:10:47,773 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8467150 
+2021-12-06 18:10:48,858 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8510560 
+2021-12-06 18:10:49,723 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8516945 
+2021-12-06 18:10:51,150 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8531680 
+2021-12-06 18:10:52,587 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8534720 
+2021-12-06 18:10:53,515 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8536110 
+2021-12-06 18:10:54,591 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8555889 
+2021-12-06 18:10:57,022 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8551910 
+2021-12-06 18:10:58,086 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8574680 
+2021-12-06 18:10:59,174 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8557380 
+2021-12-06 18:11:00,578 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8570283 
+2021-12-06 18:11:01,683 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8635750 
+2021-12-06 18:11:03,139 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8638901 
+2021-12-06 18:11:03,882 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8651370 
+2021-12-06 18:11:04,920 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8656483 
+2021-12-06 18:11:05,884 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8658163 
+2021-12-06 18:11:07,006 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8661070 
+2021-12-06 18:11:07,987 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8665530 
+2021-12-06 18:11:09,144 : INFO : fetch_single_product : fetch_station_data : dataharvester_services : NOAA/NOS:Iterate: start time is 2021-09-01 03:00:30, end time is 2021-09-04 00:30:00, station is 8670870 
+2021-12-06 18:11:10,583 : INFO : aggregate_station_data : fetch_station_data : dataharvester_services : 0 Stations were excluded 
+2021-12-06 18:11:10,583 : INFO : aggregate_station_data : fetch_station_data : dataharvester_services : 28 Stations included 
+2021-12-06 18:11:11,172 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8410140 
+2021-12-06 18:11:11,653 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8413320 
+2021-12-06 18:11:12,017 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8418150 
+2021-12-06 18:11:12,839 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8419317 
+2021-12-06 18:11:13,277 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8443970 
+2021-12-06 18:11:13,748 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8447930 
+2021-12-06 18:11:14,334 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8449130 
+2021-12-06 18:11:14,897 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8461490 
+2021-12-06 18:11:15,920 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8465705 
+2021-12-06 18:11:16,543 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8467150 
+2021-12-06 18:11:16,973 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8510560 
+2021-12-06 18:11:17,854 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8516945 
+2021-12-06 18:11:18,725 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8531680 
+2021-12-06 18:11:19,080 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8534720 
+2021-12-06 18:11:19,710 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8536110 
+2021-12-06 18:11:21,606 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8555889 
+2021-12-06 18:11:22,016 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8551910 
+2021-12-06 18:11:22,642 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8574680 
+2021-12-06 18:11:23,342 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8557380 
+2021-12-06 18:11:23,799 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8570283 
+2021-12-06 18:11:24,570 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8635750 
+2021-12-06 18:11:24,929 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8638901 
+2021-12-06 18:11:25,488 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8651370 
+2021-12-06 18:11:25,973 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8656483 
+2021-12-06 18:11:26,575 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8658163 
+2021-12-06 18:11:27,066 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8661070 
+2021-12-06 18:11:27,591 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8665530 
+2021-12-06 18:11:28,377 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : Iterate: Kept station is 8670870 
+2021-12-06 18:11:28,378 : INFO : aggregate_station_metadata : fetch_station_data : dataharvester_services : 0 Metadata Stations were excluded 
+2021-12-06 18:11:28,556 : INFO : <module> : test_noaa : dataharvester_services : Wrote pipeline data ./TEST5/noaa_stationdata_2021-09-01T03:00:30_2021-09-04T00:30:00.csv and metadata ./TEST5/noaa_stationdata_meta_2021-09-01T03:00:30_2021-09-04T00:30:00.csv 

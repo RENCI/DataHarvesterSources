@@ -1,0 +1,6 @@
+--- # adcirc DH config file
+DEFAULT: &default
+  PHOME: $DHSupportHome     #  this is currently ignored
+  RDIR: $RUNTIMEDIR   
+  LOGGING: true
+  LOGLEVEL: DEBUG
