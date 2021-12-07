@@ -37,7 +37,7 @@ stations=['30069', '30054', '30055', '30039', '30006', '30033', '30065', '30029'
 
 periods = [('2021-09-01 03:00:30', '2021-09-01 23:59:59'), ('2021-09-02 00:00:00', '2021-09-02 23:59:59'), ('2021-09-03 00:00:00', '2021-09-03 23:59:59'), ('2021-09-04 00:00:00', '2021-09-04 00:30:00')]
 
-contrails = contrails_fetch_data(stations, periods, config, 'water_level', 'NCEM')
+contrails = contrails_fetch_data(stations, periods, config, product='water_level', owner='NCEM')
 
 df_data = contrails.aggregate_station_data()
 df_meta = contrails.aggregate_station_metadata()

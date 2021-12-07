@@ -33,8 +33,8 @@ metadata = '_'+time_start.replace(' ','T')+'_'+time_stop.replace(' ','T')
 
 
 periods = [(time_start,time_stop)]
-noaanos = noaanos_fetch_data(stations, periods, 'water_level')
 
+noaanos = noaanos_fetch_data(stations, periods, product='water_level') # only 'water_level' for now
 df_data = noaanos.aggregate_station_data()
 df_meta = noaanos.aggregate_station_metadata()
 

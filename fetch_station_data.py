@@ -238,7 +238,11 @@ class adcirc_fetch_data(fetch_station_data):
                 df_data.columns=[station]
                 df_data.index.name='TIME'
                 datalist.append(df_data)
-        df_data = pd.concat(datalist)
+        try:
+            df_data = pd.concat(datalist)
+        except Exception as e:
+            utilities.log.error('ADCIRC concat error: {}'.format(e))
+            sys.exit(1)
         #utilities.log.info(df_data)
         return df_data
 
@@ -279,7 +283,7 @@ class adcirc_fetch_data(fetch_station_data):
         meta['STATE'] = None
         meta['COUNTY'] = None
         df_meta=pd.DataFrame.from_dict(meta, orient='index')
-        df_meta.columns = [str(node)]
+        df_meta.columns = [str(station)]
         return df_meta
 
 #####################################################################################
@@ -299,15 +303,18 @@ class noaanos_fetch_data(fetch_station_data):
         the units for how the data were stored. So it wouild be easay for the calling program to get confused.
         Let the caller choose to update units and modify the df_mera structure prior to DB uploads
     """
-    #products={ 'water_level':'water_level',  # 6 min
-    #       'predictions': 'predicted_wl', # 6 min
-    #       'air_pressure': 'air_press',
-    #       'hourly_height':'water_level', # hourly
-    #       'wind':'spd'}
+    # dict( persistant tag: source speciific tag )
+    products={ 'water_level':'water_level'  # 6 min
+            }
 
     def __init__(self, station_id_list, periods, product='water_level', interval=None, # units='metric', 
                 datum='MSL'):
-        self._product=product
+        try:
+            self._product=self.products[product] # product
+        except KeyError:
+            utilities.log.error('NOAA/NOS No such product key. Input {}, Available {}'.format(product, self.products.keys()))
+            sys.exit(1)
+
         self._interval=interval
         #self._units=units # Do not set this becaseu subsequent metadata calls will only return the native units not what you set here.
         self._datum=datum
@@ -384,7 +391,11 @@ class noaanos_fetch_data(fetch_station_data):
                 utilities.log.error('Hard fail: Timeout')
             except Exception as e:
                 utilities.log.error('NOAA/NOS data error: {}'.format(e))
-        df_data = pd.concat(datalist)
+        try:
+            df_data = pd.concat(datalist)
+        except Exception as e:
+            utilities.log.error('NOAA/NOS concat error: {}'.format(e))
+            sys.exit(1)
         return df_data
 
 # TODO The NOAA metadata scheme is Horrible for what we need. This example is very tentative 
@@ -435,10 +446,9 @@ class contrails_fetch_data(fetch_station_data):
         config: a dict containing values for domain <str>, method <str>, systemkey <str>
         a valid PRODUCT id <str>: See CLASSDICT definitions for specifics
     """
-
-    PRODUCT_SOURCE_MAP={
-        'water_level':'Stage'
-    }
+    # dict( persistant tag: source speciific tag )
+    products={ 'water_level':'Stage'  # 6 min
+            }
 
     CLASSDICT = {
         'Rain Increment':10,
@@ -470,7 +480,12 @@ class contrails_fetch_data(fetch_station_data):
 
     def __init__(self, station_id_list, periods, config, product='water_level', owner='NCEM'):
         self._owner=owner
-        self._product=self.PRODUCT_SOURCE_MAP[product]
+        try:
+            self._product=self.products[product] # product
+        except KeyError:
+            utilities.log.error('Contrails No such product key. Input {}, Avaibale {}'.format(product, self.products.keys()))
+            sys.exit(1)
+        print(self._product)
         self._systemkey=config['systemkey']
         self._domain=config['domain']
         super().__init__(station_id_list, periods)
@@ -528,7 +543,11 @@ class contrails_fetch_data(fetch_station_data):
             dx.index = pd.to_datetime(dx.index)
             dx = dx.astype(float) # need to do this later if plotting. So do it now.
             datalist.append(dx)
-        df_data = pd.concat(datalist)
+        try:
+            df_data = pd.concat(datalist)
+        except Exception as e:
+            utilities.log.error('Contrails concat error: {}'.format(e))
+            sys.exit(1)
         return df_data
 
 # Note it is possible to get all station metadata but only a subset of station data
