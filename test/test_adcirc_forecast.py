@@ -39,12 +39,21 @@ adcirc = adcirc_fetch_data(stations, periods, 'water_level')
 df_data = adcirc.aggregate_station_data()
 df_meta = adcirc.aggregate_station_metadata()
 
-print(df_data)
-print(df_meta)
+
+df_adcirc_data.index = df_adcirc_data.index.strftime('%Y-%m-%dT%H:%M:%S')
+df_adcirc_data.reset_index(inplace=True)
+df_adcirc_data_out=pd.melt(df_adcirc_data, id_vars=['TIME'])
+df_adcirc_data_out.columns=('TIME','STATION',product)
+#
+df_adcirc_meta.index.name='STATION'
+#df_adcirc_meta.reset_index(inplace=True)
+
+print(df_adcirc_data)
+print(df_adcirc_meta)
 
 metadata='_2021061300_2021061318_namforecast'
-outdata=utilities.writeCsv(df_data, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata',iometadata=metadata)
-outdatameta=utilities.writeCsv(df_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta',iometadata=metadata)
+outdata=utilities.writeCsv(df_adcirc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata',iometadata=metadata)
+outdatameta=utilities.writeCsv(df_adcirc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta',iometadata=metadata)
 utilities.log.info('Wrote pipeline data {} and metadata {}'.format(outdata, outdatameta))
 
 

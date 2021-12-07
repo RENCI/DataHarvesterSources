@@ -58,7 +58,6 @@ def resample_and_interpolate(df, sample_mins=None)->pd.DataFrame:
     Output:
         df_out. New time series every 15mins x stations
     """
-    return df
     timesample='15min'
     if sample_mins is not None:
         timesample=f'{sample_mins}min'
@@ -242,7 +241,6 @@ class adcirc_fetch_data(fetch_station_data):
             df_data = pd.concat(datalist)
         except Exception as e:
             utilities.log.error('ADCIRC concat error: {}'.format(e))
-            sys.exit(1)
         #utilities.log.info(df_data)
         return df_data
 
@@ -395,7 +393,6 @@ class noaanos_fetch_data(fetch_station_data):
             df_data = pd.concat(datalist)
         except Exception as e:
             utilities.log.error('NOAA/NOS concat error: {}'.format(e))
-            sys.exit(1)
         return df_data
 
 # TODO The NOAA metadata scheme is Horrible for what we need. This example is very tentative 
@@ -547,7 +544,6 @@ class contrails_fetch_data(fetch_station_data):
             df_data = pd.concat(datalist)
         except Exception as e:
             utilities.log.error('Contrails concat error: {}'.format(e))
-            sys.exit(1)
         return df_data
 
 # Note it is possible to get all station metadata but only a subset of station data
