@@ -26,7 +26,6 @@ rootdir=utilities.fetchBasedir(main_config['DEFAULT']['RDIR'], basedirExtra='')
 ## Some basic functions that will eventually be handled by the caller
 ##
 
-
 # This is UGLY. Contrails forces us to split times by the day. So a simple stride seems hard to do.
 # For all but the first day, we can simply assume each hour is 59 min, 59 sec long beyond the first point. So this is easy
 # But for the first time, we need to compute how many min+sec to the ending break.
@@ -131,7 +130,7 @@ def get_adcirc_stations(grid=None):
          ]
     return adcirc_stations, urls
 
-def get_adcirc_forcast_stations(grid=None):
+def get_adcirc_forecast_stations(grid=None):
     """
     Currently hard-coded set of valid nodes
     """
@@ -184,6 +183,7 @@ for istep in range(numsteps):
     time_range=[(time_start,time_end)] # Can be directly used by NOAA 
     periods=return_list_of_daily_timeranges(time_range[0])
     metadata = '_'+time_start.replace(' ','T')+'_'+time_end.replace(' ','T')
+
     #NOAA/NOS
     noaanos = noaanos_fetch_data(noaa_stations, time_range, 'water_level')
     df_noaa_data = noaanos.aggregate_station_data()
@@ -191,9 +191,10 @@ for istep in range(numsteps):
     df_noaa_data.index = df_noaa_data.index.strftime('%Y-%m-%dT%H:%M:%S')
     df_noaa_data.reset_index(inplace=True)
     df_noaa_data_out=pd.melt(df_noaa_data, id_vars=['TIME'])
-    df_noaa_data_out.columns=('TIME','STATION',product)
+    df_noaa_data_out.columns=('TIME','STATION',PRODUCT.upper())
     print(df_noaa_data_out)
     df_noaa_meta.index.name='STATION'
+
     #Contrails
     contrails = contrails_fetch_data(contrails_stations, periods, config, 'water_level', 'NCEM')
     df_contrails_data = contrails.aggregate_station_data()
@@ -201,46 +202,46 @@ for istep in range(numsteps):
     df_contrails_data.index = df_contrails_data.index.strftime('%Y-%m-%dT%H:%M:%S')
     df_contrails_data.reset_index(inplace=True)
     df_contrails_data_out=pd.melt(df_contrails_data, id_vars=['TIME'])
-    df_contrails_data_out.columns=('TIME','STATION',product)
+    df_contrails_data_out.columns=('TIME','STATION',PRODUCT.upper())
     df_contrails_meta.index.name='STATION'
     df_contrails_meta.reset_index(inplace=True)
-
-    # ADCIRC
-    adcirc = adcirc_fetch_data(adcirc_stations, urls, 'water_level')
-    df_adcirc_data = adcirc.aggregate_station_data()
-    df_adcirc_meta = adcirc.aggregate_station_metadata()
-
-    df_adcirc_data.index = df_adcirc_data.index.strftime('%Y-%m-%dT%H:%M:%S')
-    df_adcirc_data.reset_index(inplace=True)
-    df_adcirc_data_out=pd.melt(df_adcirc_data, id_vars=['TIME'])
-    df_adcirc_data_out.columns=('TIME','STATION',product)
-    df_adcirc_meta.index.name='STATION'
-    df_adcirc_meta.reset_index(inplace=True)
-
-    # ADCIRC
-    adcirc_fc = get_adcirc_forcast_stations(adcirc_stations_fc, urls_fc, 'water_level')
-    df_adcirc_fc_data = adcirc.aggregate_station_data()
-    df_adcirc_frc_meta = adcirc.aggregate_station_metadata()
-
-    df_adcirc_fc_data.index = df_fc_adcirc_data.index.strftime('%Y-%m-%dT%H:%M:%S')
-    df_adcirc_fc_data.reset_index(inplace=True)
-    df_adcirc_fc_data_out=pd.melt(df_fc_adcirc_data, id_vars=['TIME'])
-    df_adcirc_fc_data_out.columns=('TIME','STATION',product)
-    df_adcirc_fc_meta.index.name='STATION'
-    df_adcirc_fc_meta.reset_index(inplace=True)
-
-
-    # Save the files
+    # Save the OBS files
     noaafile=utilities.writeCsv(df_noaa_data_out, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=metadata)
     noaametafile=utilities.writeCsv(df_noaa_meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=metadata)
     #
     contrailsfile=utilities.writeCsv(df_contrails_data_out, rootdir=rootdir,subdir='',fileroot='contrails_stationdata',iometadata=metadata)
     contrailsmetafile=utilities.writeCsv(df_contrails_meta, rootdir=rootdir,subdir='',fileroot='contrails_stationdata_meta',iometadata=metadata)
-    #
-    adcircfile=utilities.writeCsv(df_adcirc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_nowcast',iometadata=metadata)
-    adcircmetafile=utilities.writeCsv(df_adcirc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta_nowcast',iometadata=metadata)
-    #
-    adcircfile_fc=utilities.writeCsv(df_adcirc_fc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_namforecast',iometadata=metadata)
-    adcircmetafile_fc=utilities.writeCsv(df_adcirc_fc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta_namforecast',iometadata=metadata)
+
+# No need to iterate over adcirc since perdios already has several urls
+# ADCIRC
+adcirc = adcirc_fetch_data(adcirc_stations, urls, 'water_level')
+df_adcirc_data = adcirc.aggregate_station_data()
+df_adcirc_meta = adcirc.aggregate_station_metadata()
+
+df_adcirc_data.index = df_adcirc_data.index.strftime('%Y-%m-%dT%H:%M:%S')
+df_adcirc_data.reset_index(inplace=True)
+df_adcirc_data_out=pd.melt(df_adcirc_data, id_vars=['TIME'])
+df_adcirc_data_out.columns=('TIME','STATION',PRODUCT.upper())
+df_adcirc_meta.index.name='STATION'
+df_adcirc_meta.reset_index(inplace=True)
+
+# ADCIRC
+adcirc_fc = get_adcirc_forcast_stations(adcirc_stations_fc, urls_fc, 'water_level')
+df_adcirc_fc_data = adcirc.aggregate_station_data()
+df_adcirc_frc_meta = adcirc.aggregate_station_metadata()
+
+df_adcirc_fc_data.index = df_fc_adcirc_data.index.strftime('%Y-%m-%dT%H:%M:%S')
+df_adcirc_fc_data.reset_index(inplace=True)
+df_adcirc_fc_data_out=pd.melt(df_fc_adcirc_data, id_vars=['TIME'])
+df_adcirc_fc_data_out.columns=('TIME','STATION',PRODUCT.upper())
+df_adcirc_fc_meta.index.name='STATION'
+df_adcirc_fc_meta.reset_index(inplace=True)
+
+#
+adcircfile=utilities.writeCsv(df_adcirc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_nowcast',iometadata=metadata)
+adcircmetafile=utilities.writeCsv(df_adcirc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta_nowcast',iometadata=metadata)
+#
+adcircfile_fc=utilities.writeCsv(df_adcirc_fc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_namforecast',iometadata=metadata)
+adcircmetafile_fc=utilities.writeCsv(df_adcirc_fc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta_namforecast',iometadata=metadata)
 
 print('Finished')

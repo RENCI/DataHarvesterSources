@@ -590,8 +590,6 @@ class contrails_fetch_data(fetch_station_data):
         meta['UNITS'] = data['units'].replace('.','') # I have seen . in some labels
         meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
         or_site_id= data['or_site_id'] 
-        print('FIRST')
-        print(dict_data)
         # 2
         METHOD = 'GetSiteMetaData'
         #indict = {'method': METHOD,'tz':GLOBAL_TIMEZONE, 'class': self.CLASSDICT[self._product],
