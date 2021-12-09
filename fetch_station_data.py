@@ -108,6 +108,7 @@ class fetch_station_data(object):
         utilities.log.info('{} Stations were excluded'.format(len(excludedStations)))
         utilities.log.info('{} Stations included'.format(len(aggregateData)))
         df_data = pd.concat(aggregateData, axis=1)
+        # I have seen loits of nans coming from ADCIRC
         #df_data.dropna(how='all', axis=1, inplace=True)
         return df_data
 
@@ -159,6 +160,10 @@ class adcirc_fetch_data(fetch_station_data):
         station_id_list: list of station_ids to pass to ADCIRC
         periods: list of valid ADCIRC urls tuples (*63.nc,*.61.nc) for aggregation 
     """
+    # dict( persistant tag: source speciific tag )
+    products={ 'water_level':'water_level'  # 6 min
+            }
+
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
                 datum='MSL'):
@@ -242,7 +247,6 @@ class adcirc_fetch_data(fetch_station_data):
             df_data = pd.concat(datalist)
         except Exception as e:
             utilities.log.error('ADCIRC concat error: {}'.format(e))
-        #utilities.log.info(df_data)
         return df_data
 
     def fetch_single_metadata(self, station_tuple) -> pd.DataFrame:
@@ -501,19 +505,6 @@ class contrails_fetch_data(fetch_station_data):
         full_url = url +'?' +url_values
         return full_url
 
-    def returnStationDict(station, data):
-        """
-        A hack code to account for weirdness in Contrails. Sometimes a station
-        object is returned as a simple dict. Sometimes as a list of dicts
-        This method searcxhes the list to find the correct dict for the station at hand
-        """
-        for d in data:
-            if station.upper() == data['site_id'].upper():
-                print('Found station data')
-                return d
-        print('No station found')
-        sys.exit(1)
-        
 # We do a station at a time because the max number of rows returned is 5,000
 # And the data for some stations is 6min
 #
@@ -546,7 +537,7 @@ class contrails_fetch_data(fetch_station_data):
             try:
                 response = requests.get(url)
             except Exception as e:
-                utilities.log.error('Contrails data error: {}'.format(e))
+                utilities.log.error('Contrails response data error: {}'.format(e))
             dict_data = xmltodict.parse(response.content)
             data = dict_data['onerain']['response']['general']
             dx = pd.DataFrame(data['row']) # Will  be <= 5000
@@ -563,6 +554,8 @@ class contrails_fetch_data(fetch_station_data):
         return df_data
 
 # Note it is possible to get all station metadata but only a subset of station data
+# According to oneRain the current best way to access the meta data is using or_site_id
+#
     def fetch_single_metadata(self, station) -> pd.DataFrame:      
         """
         For a single Contrails site_id fetch the associated metadata.
@@ -580,6 +573,7 @@ class contrails_fetch_data(fetch_station_data):
         # Something wrong with GTNN7 the second dict is way too big as a LIST. The list doesn't include GTNN7
         # Sent bug report to contrails.Dec 8, 2021
         # The second dict for GTNN7 contains LOTS of station's data which corrupts the algorithm
+        # Switch to using or_site_id
         meta=dict() 
         # 1
         METHOD = 'GetSensorMetaData'
@@ -593,27 +587,24 @@ class contrails_fetch_data(fetch_station_data):
         ##meta['STATION'] = data['site_id'] # Do not add here will cause problems
         meta['SENSOR'] = data['sensor_id'] 
         meta['PRODUCT'] = data['description']
-        meta['UNITS'] = data['units'] # NOTE, I've seem '.' appended sometimes
+        meta['UNITS'] = data['units'].replace('.','') # I have seen . in some labels
         meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
+        or_site_id= data['or_site_id'] 
+        print('FIRST')
+        print(dict_data)
         # 2
         METHOD = 'GetSiteMetaData'
+        #indict = {'method': METHOD,'tz':GLOBAL_TIMEZONE, 'class': self.CLASSDICT[self._product],
+        #     'system_key': self._systemkey ,'site_id': station }
         indict = {'method': METHOD,'tz':GLOBAL_TIMEZONE, 'class': self.CLASSDICT[self._product],
-             'system_key': self._systemkey ,'site_id': station }
+             'system_key': self._systemkey ,'or_site_id': or_site_id }
         url = self.build_url_for_contrails_station(self._domain,self._systemkey,indict)
         try:
             response = requests.get(url)
         except Exception as e:
-            utilities.log.error('Contrails meta error: {}'.format(e))
+            utilities.log.error('Contrails response meta error: {}'.format(e))
         dict_data = xmltodict.parse(response.content)
-        #print(dict_data)
-        read_data = dict_data['onerain']['response']['general']['row']
-        #if type(read_data) is list:
-        #     print('DAMN LIST')
-        #     data = returnStationDict(station, data)
-        #else:
-        #     print('COOL DICT')
-        #     data = read_data
-        data = read_data
+        data = dict_data['onerain']['response']['general']['row']
         # Gets here but then fails hard and returns for GTNN7
         meta['LAT'] = data['latitude_dec']
         meta['LON'] = data['longitude_dec']
