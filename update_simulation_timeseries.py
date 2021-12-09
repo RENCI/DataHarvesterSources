@@ -15,7 +15,7 @@ import math
 from datetime import timedelta
 from datetime import datetime as dt
 
-from fetch_station_data import noaanos_fetch_data, contrails_fetch_data
+from fetch_station_data import adcirc_fetch_data, noaanos_fetch_data, contrails_fetch_data
 from utilities.utilities import utilities as utilities
 
 main_config = utilities.load_config()
