@@ -9,8 +9,9 @@
 # We want to upload data to the DB every 15mins. This will require smoothing the data
 # But also, I can see the River data is a mess. We will need to excluded stations with insufficient data.
 #
-#
 # An attempt at a simple first pass at a fetch method for product data (primarily water_level)
+#
+# Note the df_meta method can be a little tricky to implement a proper format. 
 #
 import os,sys
 import pandas as pd
@@ -408,6 +409,8 @@ class noaanos_fetch_data(fetch_station_data):
 
              This orientation facilitates aggregation upstream. Upstream will transpose this eventually
              to our preferred orientation with stations as index
+
+        NOTE: DO not store a column entry with the stationid. Simply name the column station id, then take transpose.
         """
         meta=dict()
         try:
@@ -498,6 +501,19 @@ class contrails_fetch_data(fetch_station_data):
         full_url = url +'?' +url_values
         return full_url
 
+    def returnStationDict(station, data):
+        """
+        A hack code to account for weirdness in Contrails. Sometimes a station
+        object is returned as a simple dict. Sometimes as a list of dicts
+        This method searcxhes the list to find the correct dict for the station at hand
+        """
+        for d in data:
+            if station.upper() == data['site_id'].upper():
+                print('Found station data')
+                return d
+        print('No station found')
+        sys.exit(1)
+        
 # We do a station at a time because the max number of rows returned is 5,000
 # And the data for some stations is 6min
 #
@@ -561,6 +577,9 @@ class contrails_fetch_data(fetch_station_data):
              This orientation facilitates aggregation upstream. Upstream will transpose this eventually
              to our preferred orientation with stations as index
         """
+        # Something wrong with GTNN7 the second dict is way too big as a LIST. The list doesn't include GTNN7
+        # Sent bug report to contrails.Dec 8, 2021
+        # The second dict for GTNN7 contains LOTS of station's data which corrupts the algorithm
         meta=dict() 
         # 1
         METHOD = 'GetSensorMetaData'
@@ -571,8 +590,8 @@ class contrails_fetch_data(fetch_station_data):
         dict_data = xmltodict.parse(response.content)
         data = dict_data['onerain']['response']['general']['row']
         meta['NAME'] = data['location']
-        meta['STATION'] = data['site_id']
-        meta['SENSOR'] = data['sensor_id']
+        ##meta['STATION'] = data['site_id'] # Do not add here will cause problems
+        meta['SENSOR'] = data['sensor_id'] 
         meta['PRODUCT'] = data['description']
         meta['UNITS'] = data['units'] # NOTE, I've seem '.' appended sometimes
         meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
@@ -586,10 +605,19 @@ class contrails_fetch_data(fetch_station_data):
         except Exception as e:
             utilities.log.error('Contrails meta error: {}'.format(e))
         dict_data = xmltodict.parse(response.content)
-        data = dict_data['onerain']['response']['general']['row']
+        #print(dict_data)
+        read_data = dict_data['onerain']['response']['general']['row']
+        #if type(read_data) is list:
+        #     print('DAMN LIST')
+        #     data = returnStationDict(station, data)
+        #else:
+        #     print('COOL DICT')
+        #     data = read_data
+        data = read_data
+        # Gets here but then fails hard and returns for GTNN7
         meta['LAT'] = data['latitude_dec']
         meta['LON'] = data['longitude_dec']
-        #meta['ELEVATION'] = data['elevation']
+        ###meta['ELEVATION'] = data['elevation']
         meta['OWNER'] = data['owner']
         meta['COUNTY'] = None # data['county']
         meta['STATE'] = None # data['state']

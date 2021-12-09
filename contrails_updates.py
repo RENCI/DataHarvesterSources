@@ -120,7 +120,7 @@ def main(args):
         stations=list(args.stations)
     else:
         stations=default_stations
-    print('{} '.format(stations))
+    #print('{} '.format(stations))
 
     # Build metadata used for saving files
     metadata = '_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')+'_'+product
@@ -130,17 +130,12 @@ def main(args):
     df_contrails_data = contrails.aggregate_station_data()
     df_contrails_meta = contrails.aggregate_station_metadata()
 
-    # Converet times to strings with T separators
-    # metadata = '_'+time_start.replace(' ','T')+'_'+time_stop.replace(' ','T')
-
     # Reformat the data for the database load
     df_contrails_data.index = df_contrails_data.index.strftime('%Y-%m-%dT%H:%M:%S')
     df_contrails_data.reset_index(inplace=True)
     df_contrails_data_out=pd.melt(df_contrails_data, id_vars=['TIME'])
-    df_contrails_data_out.columns=('TIME','STATION',product)
-    #
+    df_contrails_data_out.columns=('TIME','STATION',product.upper())
     df_contrails_meta.index.name='STATION'
-    #df_contrails_meta.reset_index(inplace=True)
     
     # Write out the data
     contrailsfile=utilities.writeCsv(df_contrails_data_out, rootdir=rootdir,subdir='',fileroot='contrails_stationdata',iometadata=metadata)

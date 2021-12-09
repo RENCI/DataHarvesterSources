@@ -48,6 +48,7 @@ def main(args):
         stations=default_stations
     print('{} '.format(stations))
 
+    # Convert times to strings with T separators
     # Build metadata used for saving files
     metadata = '_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')+'_'+product
 
@@ -56,18 +57,12 @@ def main(args):
     df_noaa_data = noaanos.aggregate_station_data()
     df_noaa_meta = noaanos.aggregate_station_metadata()
 
-    # Converet times to strings with T separators
-    # metadata = '_'+time_start.replace(' ','T')+'_'+time_stop.replace(' ','T')
-
-    # Reformat the data for the database load
+    # Reformat the data and for the database load
     df_noaa_data.index = df_noaa_data.index.strftime('%Y-%m-%dT%H:%M:%S')
     df_noaa_data.reset_index(inplace=True)
     df_noaa_data_out=pd.melt(df_noaa_data, id_vars=['TIME'])
-    df_noaa_data_out.columns=('TIME','STATION',product)
-    print(df_noaa_data_out)
-    #
+    df_noaa_data_out.columns=('TIME','STATION',product.upper())
     df_noaa_meta.index.name='STATION'
-    #df_noaa_meta.reset_index(inplace=True)
     
     # Write out the data
     noaafile=utilities.writeCsv(df_noaa_data_out, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=metadata)
