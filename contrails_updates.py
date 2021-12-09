@@ -135,6 +135,7 @@ def main(args):
     df_contrails_data.reset_index(inplace=True)
     df_contrails_data_out=pd.melt(df_contrails_data, id_vars=['TIME'])
     df_contrails_data_out.columns=('TIME','STATION',product.upper())
+    df_contrails_data_out.set_index('TIME',inplace=True)
     df_contrails_meta.index.name='STATION'
     
     # Write out the data

@@ -62,6 +62,7 @@ def main(args):
     df_noaa_data.reset_index(inplace=True)
     df_noaa_data_out=pd.melt(df_noaa_data, id_vars=['TIME'])
     df_noaa_data_out.columns=('TIME','STATION',product.upper())
+    df_noaa_data_out.set_index('TIME', inplace=True)
     df_noaa_meta.index.name='STATION'
     
     # Write out the data
