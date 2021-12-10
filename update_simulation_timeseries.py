@@ -192,6 +192,7 @@ for istep in range(numsteps):
     df_noaa_data.reset_index(inplace=True)
     df_noaa_data_out=pd.melt(df_noaa_data, id_vars=['TIME'])
     df_noaa_data_out.columns=('TIME','STATION',PRODUCT.upper())
+    df_noaa_data_out.set_index('TIME',inplace=True)
     print(df_noaa_data_out)
     df_noaa_meta.index.name='STATION'
 
@@ -203,8 +204,9 @@ for istep in range(numsteps):
     df_contrails_data.reset_index(inplace=True)
     df_contrails_data_out=pd.melt(df_contrails_data, id_vars=['TIME'])
     df_contrails_data_out.columns=('TIME','STATION',PRODUCT.upper())
+    df_contrails_data_out.set_index('TIME',inplace=True)
     df_contrails_meta.index.name='STATION'
-    df_contrails_meta.reset_index(inplace=True)
+    ####df_contrails_meta.reset_index(inplace=True)
     # Save the OBS files
     noaafile=utilities.writeCsv(df_noaa_data_out, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=metadata)
     noaametafile=utilities.writeCsv(df_noaa_meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=metadata)
@@ -223,19 +225,21 @@ df_adcirc_data.reset_index(inplace=True)
 df_adcirc_data_out=pd.melt(df_adcirc_data, id_vars=['TIME'])
 df_adcirc_data_out.columns=('TIME','STATION',PRODUCT.upper())
 df_adcirc_meta.index.name='STATION'
-df_adcirc_meta.reset_index(inplace=True)
+df_adcirc_data_out.set_index('TIME',inplace=True)
+##df_adcirc_meta.reset_index(inplace=True)
 
 # ADCIRC
-adcirc_fc = get_adcirc_forcast_stations(adcirc_stations_fc, urls_fc, 'water_level')
+adcirc_fc = adcirc_fetch_data(adcirc_stations_fc, urls_fc, 'water_level')
 df_adcirc_fc_data = adcirc.aggregate_station_data()
-df_adcirc_frc_meta = adcirc.aggregate_station_metadata()
+df_adcirc_fc_meta = adcirc.aggregate_station_metadata()
 
-df_adcirc_fc_data.index = df_fc_adcirc_data.index.strftime('%Y-%m-%dT%H:%M:%S')
+df_adcirc_fc_data.index = df_adcirc_fc_data.index.strftime('%Y-%m-%dT%H:%M:%S')
 df_adcirc_fc_data.reset_index(inplace=True)
-df_adcirc_fc_data_out=pd.melt(df_fc_adcirc_data, id_vars=['TIME'])
+df_adcirc_fc_data_out=pd.melt(df_adcirc_fc_data, id_vars=['TIME'])
 df_adcirc_fc_data_out.columns=('TIME','STATION',PRODUCT.upper())
+df_adcirc_fc_data_out.set_index('TIME',inplace=True)
 df_adcirc_fc_meta.index.name='STATION'
-df_adcirc_fc_meta.reset_index(inplace=True)
+##df_adcirc_fc_meta.reset_index(inplace=True)
 
 #
 adcircfile=utilities.writeCsv(df_adcirc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_nowcast',iometadata=metadata)
