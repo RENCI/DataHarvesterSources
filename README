@@ -1,0 +1,28 @@
+# To execute the update4 methods is simple.
+#
+# NOAA
+
+# If you want to simple accept the defalt stations lists, an endtime of now() and a starttime of now()-2days
+# Then simply invoke as: python noaa_updates.py
+#
+# Can launch a job like:
+#    python noaa_updates.py --stoptime '2021-09-04 00:30:00' --ndays 3 --stations '8410140' '8761724'
+#    o8419317  8635750
+#
+python noaa_updates.py --stoptime '2021-09-04 00:30:00' --ndays 3 --stations '8419317' '8635750'
+
+# CONTRAILS
+#
+# If you want to simple accept the defalt stations lists, an endtime of now() and a starttime of now()-2days
+# Then simply invoke as: python contrails_updates.py
+#
+#
+# # Can launch a job like:
+#    python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays 3 --stations 'WNRN7' 'GTNN7'
+#    o8419317  8635750
+#
+
+python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays 3 --stations '30007' 'GTNN7'
+
+
+
