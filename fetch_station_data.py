@@ -278,7 +278,7 @@ class adcirc_fetch_data(fetch_station_data):
         meta['LAT'] = nodelat
         meta['LON'] = nodelon
         meta['NAME']= nc.description # Or possible use nc.version
-        meta['VERSION'] = nc.version
+        #meta['VERSION'] = nc.version
         meta['UNITS'] ='metric'
         meta['TZ'] = GLOBAL_TIMEZONE # Can look in nc.comments
         meta['OWNER'] = nc.source
@@ -422,8 +422,8 @@ class noaanos_fetch_data(fetch_station_data):
             utilities.log.error('NOAA/NOS meta error: {}'.format(e))
         meta['LAT'] = location.metadata['lat']
         meta['LON'] = location.metadata['lng']
-        meta['UNITS'] = location.sensors['units'] # This can DIFFER from the actual data. For data you can specify a transform to metric.
         meta['NAME'] =  location.metadata['name']
+        meta['UNITS'] = location.sensors['units'] # This can DIFFER from the actual data. For data you can specify a transform to metric.
         #meta['ELEVATION'] = location['elevation']
         meta['TZ'] = GLOBAL_TIMEZONE
         meta['OWNER'] = 'NOAA/NOS'
@@ -582,12 +582,12 @@ class contrails_fetch_data(fetch_station_data):
         response = requests.get(url)
         dict_data = xmltodict.parse(response.content)
         data = dict_data['onerain']['response']['general']['row']
-        meta['NAME'] = data['location']
+        #meta['NAME'] = data['location']
         ##meta['STATION'] = data['site_id'] # Do not add here will cause problems
-        meta['SENSOR'] = data['sensor_id'] 
-        meta['PRODUCT'] = data['description']
-        meta['UNITS'] = data['units'].replace('.','') # I have seen . in some labels
-        meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
+        #meta['SENSOR'] = data['sensor_id'] 
+        #meta['PRODUCT'] = data['description']
+        #meta['UNITS'] = data['units'].replace('.','') # I have seen . in some labels
+        #meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
         or_site_id= data['or_site_id'] 
         # 2
         METHOD = 'GetSiteMetaData'
@@ -601,14 +601,17 @@ class contrails_fetch_data(fetch_station_data):
         except Exception as e:
             utilities.log.error('Contrails response meta error: {}'.format(e))
         dict_data = xmltodict.parse(response.content)
-        data = dict_data['onerain']['response']['general']['row']
+        data2 = dict_data['onerain']['response']['general']['row']
         # Gets here but then fails hard and returns for GTNN7
-        meta['LAT'] = data['latitude_dec']
-        meta['LON'] = data['longitude_dec']
+        meta['LAT'] = data2['latitude_dec']
+        meta['LON'] = data2['longitude_dec']
+        meta['NAME'] = data['location']
+        meta['UNITS'] = data['units'].replace('.','') # I have seen . in some labels
+        meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
         ###meta['ELEVATION'] = data['elevation']
-        meta['OWNER'] = data['owner']
-        meta['COUNTY'] = None # data['county']
-        meta['STATE'] = None # data['state']
+        meta['OWNER'] = data2['owner']
+        meta['STATE'] = None # data2['state']  # DO these work ?
+        meta['COUNTY'] = None # data2['county']
         df_meta=pd.DataFrame.from_dict(meta, orient='index')
         df_meta.columns = [str(station)] 
         return df_meta
