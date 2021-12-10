@@ -143,8 +143,8 @@ class fetch_station_data(object):
 #####################################################################################
 ##
 ## Fetching the ADCIRC NODE data from TDS
-## In contrast to NOAA and Contrails, currently, ther passed in list is of ADCIRC NODEs not stations
-## We will now pass in NOAA/Contrails stationids but we must query the fort.61.nc file 
+## In contrast to NOAA and Contrails,
+## We will pass in NOAA/Contrails stationids but we must query the fort.61.nc file 
 ##
 
 ## The one node at a time approach may not be a big deal as 1: It better conforms to accessinmg the other sources
@@ -251,9 +251,8 @@ class adcirc_fetch_data(fetch_station_data):
 
     def fetch_single_metadata(self, station_tuple) -> pd.DataFrame:
         """
-        Note the difference in how getting modelk data works requires us to dig into a class variable urls in periods.
         Input:
-            station <str>. A valid node id
+            station <str>. A valid station id
 
         Return:
             dataframe of time (timestamps) vs values for the requested nodes 
@@ -303,8 +302,8 @@ class noaanos_fetch_data(fetch_station_data):
         interval <str> set to 'h' returned hourly data, else 6min data
 
         NOTE: Default to using imperial units. Because the metadata that gets returned only reports
-        the units for how the data were stored. So it wouild be easay for the calling program to get confused.
-        Let the caller choose to update units and modify the df_mera structure prior to DB uploads
+        the units for how the data were stored not fetched. So it wouid be easay for the calling program to get confused.
+        Let the caller choose to update units and modify the df_meta structure prior to DB uploads
     """
     # dict( persistant tag: source speciific tag )
     products={ 'water_level':'water_level'  # 6 min
@@ -326,7 +325,7 @@ class noaanos_fetch_data(fetch_station_data):
     def check_duplicate_time_entries(self, station, stationdata):
         """
         Sometimes station data comes back with multiple entries for a single time.
-        Here we search for such dups and keep the FIRST one
+        Here we search for such dups and keep the FIRST one (Same as for ADDA)
         Choosing first was based on a single station and looking at the noaa coops website
 
         Parameters:
