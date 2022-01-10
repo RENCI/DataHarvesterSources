@@ -37,11 +37,21 @@ import noaa_coops as coops
 #from get_adcirc.GetADCIRC import Adcirc, writeToJSON, get_water_levels63
 import netCDF4 as nc4
 import numpy as np
+import numpy.ma as ma
 import pandas as pd
 from siphon.catalog import TDSCatalog
 from collections import OrderedDict
 
 GLOBAL_TIMEZONE='gmt' # Every source is set or presumed to return times in the zone
+
+GLOBAL_FILL_VALUE='-99999'
+
+def replaceAndFill(df):
+    """
+    Replace all Nans ans 'None" valuesa with GLOBAL_FILL_VALUE
+    """
+    df=df.fillna(GLOBAL_FILL_VALUE)
+    return df
 
 def resample_and_interpolate(df, sample_mins=None)->pd.DataFrame:
     """
@@ -87,6 +97,8 @@ class fetch_station_data(object):
     def aggregate_station_data(self)->pd.DataFrame:
         """
         Loop over the list of stations and fetch the products. Then concatenate them info single dataframe
+
+        nans now get converted to the value in GLOBAL_FILL_VALUE
         """
         aggregateData = list()
         excludedStations=list()
@@ -110,6 +122,7 @@ class fetch_station_data(object):
         df_data = pd.concat(aggregateData, axis=1)
         # I have seen loits of nans coming from ADCIRC
         #df_data.dropna(how='all', axis=1, inplace=True)
+        df_data = replaceAndFill(df_data)
         return df_data
 
 # TODO Need to sync with df_data
@@ -117,6 +130,8 @@ class fetch_station_data(object):
         """
         Loop over the list of stations and fetch the metadata. Then concatenate info single dataframe
         Transpose final data to have stations as index
+
+        nans now get converted to the value in GLOBAL_FILL_VALUE
         """
         aggregateMetaData = list()
         excludedStations = list()
@@ -138,6 +153,7 @@ class fetch_station_data(object):
         utilities.log.info('{} Metadata Stations were excluded'.format(len(excludedStations)))
         df_meta = pd.concat(aggregateMetaData, axis=1).T
         #df_meta.dropna(how='all', axis=1, inplace=True)
+        df_meta = replaceAndFill(df_meta)
         return df_meta
 
 #####################################################################################
@@ -166,12 +182,18 @@ class adcirc_fetch_data(fetch_station_data):
 
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
-                datum='MSL'):
+                datum='MSL', gridname='None', runtype='None'):
         self._product=product
         #self._interval=interval 
         self._units='metric'
         self._datum=datum
         self._periods=periods
+        if runtype.upper()!='NOWCAST' and runtype.upper()!='FORECAST':
+            utilities.log.info('ADCIRC: runtype not set to either nowcast or forecast. Will result in poor metadata NAME value')
+        self._runtype=runtype 
+        if gridname=='None':
+            utilities.log.info('ADCIRC: gridname not specified. Will result in poor metadata NAME value') 
+        self._gridname=gridname
         available_stations = self._fetch_adcirc_nodes_from_stations(station_id_list, periods[0])
         utilities.log.info('List of generated stations {}'.format(available_stations))
         super().__init__(available_stations, periods) # Pass in the full dict
@@ -199,7 +221,7 @@ class adcirc_fetch_data(fetch_station_data):
         idx = list() # Bukld a list of tuples (stationid,nodeid)
         for ss in stations: # Loop over stations to maintain order
             s = ss # Supposed to pull out the first word
-            # Cnvert ot a try clause
+            # Cnvert to a try clause
             if s in snn_pruned:
                 utilities.log.debug("{} is in list.".format(s))
                 idx.append( (s,snn.index(s)) )
@@ -208,6 +230,13 @@ class adcirc_fetch_data(fetch_station_data):
                 #sys.exit(1)
         return idx # Need this to get around loop structure in aggregate etch 
 
+##
+## Criky. When I initially inserted nodelat/lon into meta, then subsequently updated COUNTY as np.nan
+## The inserted "nan" was somehow, not a real nan and thus, the fillna() step would do nothing.
+## No idea why at this time. Clearly another SNAFU driven by duck-typing issues. Jan 2022. Even though
+## the nodelat/lon was actually a single element masked array (which I corrected) why would that impact
+## The value of meta['COUNTY'] ?
+##
     def fetch_single_product(self, station_tuple, periods) -> pd.DataFrame:
         """
         Input:
@@ -249,6 +278,12 @@ class adcirc_fetch_data(fetch_station_data):
             utilities.log.error('ADCIRC concat error: {}'.format(e))
         return df_data
 
+##
+## The nodelat/nodelon objects are masked arrays. For a single node (as used here)
+## the ma.getdata() returns an ndarray of shape=() but with the a single value.
+## Imposing a float() onto that value converts it to a real float
+## No idea why this happens nor if in the future problerms will occur
+##
     def fetch_single_metadata(self, station_tuple) -> pd.DataFrame:
         """
         Input:
@@ -264,26 +299,27 @@ class adcirc_fetch_data(fetch_station_data):
 
         for url in periods:
             nc = nc4.Dataset(url)
-            lons = nc.variables['x']
-            lats=nc.variables['y']
             # we need to test access to the netCDF variables, due to infrequent issues with
             # netCDF files written with v1.8 of HDF5.
             try:
-                data = nc['zeta'][:, node]
                 nodelon=nc.variables['x'][node]
                 nodelat=nc.variables['y'][node]
+                break; # If we found it no need to check other urls
             except IndexError as e:
                 utilities.log.error('Meta Error:{}'.format(e))
                 #sys.exit()
-        meta['LAT'] = nodelat
-        meta['LON'] = nodelon
-        meta['NAME']= nc.description # Or possible use nc.version
+        lat = float(ma.getdata(nodelat))
+        lon = float(ma.getdata(nodelon))
+        meta['LAT'] = lat 
+        meta['LON'] = lon 
+        # meta['NAME']= nc.agrid # Long form of grid name description # Or possible use nc.version
+        meta['NAME']='_'.join([self._gridname.upper(),self._runtype.upper()]) # These values come from the calling routine and should be usually nowcast, forecast
         #meta['VERSION'] = nc.version
         meta['UNITS'] ='metric'
         meta['TZ'] = GLOBAL_TIMEZONE # Can look in nc.comments
         meta['OWNER'] = nc.source
-        meta['STATE'] = None
-        meta['COUNTY'] = None
+        meta['STATE'] = np.nan 
+        meta['COUNTY'] = np.nan 
         df_meta=pd.DataFrame.from_dict(meta, orient='index')
         df_meta.columns = [str(station)]
         return df_meta
@@ -428,7 +464,8 @@ class noaanos_fetch_data(fetch_station_data):
         meta['TZ'] = GLOBAL_TIMEZONE
         meta['OWNER'] = 'NOAA/NOS'
         meta['STATE'] = location.metadata['state']
-        meta['COUNTY'] = None
+        meta['COUNTY'] = np.nan # None
+        #
         df_meta=pd.DataFrame.from_dict(meta, orient='index')
         df_meta.columns = [str(station)]
         return df_meta
@@ -609,9 +646,9 @@ class contrails_fetch_data(fetch_station_data):
         meta['UNITS'] = data['units'].replace('.','') # I have seen . in some labels
         meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
         ###meta['ELEVATION'] = data['elevation']
-        meta['OWNER'] = data2['owner']
-        meta['STATE'] = None # data2['state']  # DO these work ?
-        meta['COUNTY'] = None # data2['county']
+        meta['OWNER'] = self._owner # data2 always returns the value=DEPRECATED data2['owner']
+        meta['STATE'] = np.nan # None # data2['state']  # DO these work ?
+        meta['COUNTY'] = np.nan # None # data2['county']
         df_meta=pd.DataFrame.from_dict(meta, orient='index')
         df_meta.columns = [str(station)] 
         return df_meta
