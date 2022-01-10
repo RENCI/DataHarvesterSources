@@ -4,7 +4,19 @@
 # These files will be used for building and testing out schema for the newq DB 
 #
 # We intentionally have time ranges that are overlapping
-# We exclude adcirc for now
+#
+# The filenames are going to have the following nomenclature:
+#
+# Basic stations will be as before with a simple name such as
+#      noaa_stationdata_times and noaa_stationdata_meta_time
+#
+# Model data ( adcirc) requires more information: Here we look for
+#      adcirc_stationdata_ensemble_grid_time
+#      adcirc_stationdata_meta_ensemble_grid_time
+#
+# ensemble: An arbitrary string. According to a cursory look at tds, this has values such as:
+#    nowcast, nhc0fcl, veerright, etc. So we will set the following defaults:
+# grid: hsofs,ec95d,etc
 #
 #
 
@@ -20,7 +32,6 @@ from utilities.utilities import utilities as utilities
 
 main_config = utilities.load_config()
 rootdir=utilities.fetchBasedir(main_config['DEFAULT']['RDIR'], basedirExtra='')
-
 
 ##
 ## Some basic functions that will eventually be handled by the caller
@@ -141,7 +152,6 @@ def returnListOfURLRanges(start_time, end_time, adctype='nowcast'):
         end_time: (str) format %Y-%m-%d %H:%M:%S
         type: nowcast yields times that are <= start_time and end_time ,respectively.
             however if namforecast, the end times can be in the future
-            
         
     Return:  
     The list entries are valid TIMES to buld URLS
@@ -269,8 +279,8 @@ def process_nowcast_stations(urls, adcirc_stations, metadata, gridname):
         df_adcirc_meta = adcirc.aggregate_station_metadata()
         df_adcirc_data_out,df_adcirc_meta = format_data_frames(df_adcirc_data,df_adcirc_meta)
         # Save the data
-        adcircfile=utilities.writeCsv(df_adcirc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_nowcast',iometadata=metadata)
-        adcircmetafile=utilities.writeCsv(df_adcirc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta_nowcast',iometadata=metadata)
+        adcircfile=utilities.writeCsv(df_adcirc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata',iometadata=metadata)
+        adcircmetafile=utilities.writeCsv(df_adcirc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta',iometadata=metadata)
         utilities.log.info('NOWCAST data has been stored {},{}'.format(adcircfile,adcircmetafile))
     except IndexError as e:
         utilities.log.error('Error: NOWCAST: {}'.format(e))
@@ -283,8 +293,8 @@ def process_forecast_stations(urls_fc, adcirc_stations, metadata, gridname):
         df_adcirc_fc_meta = adcirc_fc.aggregate_station_metadata()
         df_adcirc_fc_data_out,df_adcirc_fc_meta = format_data_frames(df_adcirc_fc_data,df_adcirc_fc_meta)
         # Save the data
-        adcircfile_fc=utilities.writeCsv(df_adcirc_fc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_namforecast',iometadata=metadata)
-        adcircmetafile_fc=utilities.writeCsv(df_adcirc_fc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta_namforecast',iometadata=metadata)
+        adcircfile_fc=utilities.writeCsv(df_adcirc_fc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata',iometadata=metadata)
+        adcircmetafile_fc=utilities.writeCsv(df_adcirc_fc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta',iometadata=metadata)
         utilities.log.info('FORECAST data has been stored {},{}'.format(adcircfile_fc,adcircmetafile_fc))
     except IndexError as e:
         utilities.log.error('Error: FORECAST: {}'.format(e))
@@ -344,20 +354,28 @@ def main(args):
     #print(urls)
     #print(urls_fc)
 
-    # Basic metadata for ALL data files
-    metadata = '_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    # Basic metadata for data files
+    # metadata = '_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
 
     #NOAA/NOS
-    process_noaa_stations(time_range, noaa_stations, metadata)
+    noaa_metadata='_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    process_noaa_stations(time_range, noaa_stations, noaa_metadata)
 
     #Contrails - useperiods instead of timerange
-    process_contrails_stations(periods, contrails_stations, metadata)
+    contrails_metadata='_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    process_contrails_stations(periods, contrails_stations, contrails_metadata)
 
     # NOWCAST ADCIRC
-    process_nowcast_stations(urls, adcirc_stations, metadata, args.gridname)
+    nowcast_metadata = 'nowcast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    process_nowcast_stations(urls, adcirc_stations, nowcast_metadata, args.gridname)
 
     # FORECAST ADCIRC
-    process_forecast_stations(urls_fc, adcirc_stations, metadata, args.gridname)
+    forecast_metadata = '_forecast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    process_forecast_stations(urls_fc, adcirc_stations, forecast_metadata, args.gridname)
+
+    # FAKE veerright FORECAST ADCIRC
+    forecast_vr_metadata = '_FakeVeerRight_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    process_forecast_stations(urls_fc, adcirc_stations, forecast_vr_metadata, args.gridname)
 
     print('Finished metadata is {}'.format(metadata))
 
