@@ -366,7 +366,7 @@ def main(args):
     process_contrails_stations(periods, contrails_stations, contrails_metadata)
 
     # NOWCAST ADCIRC
-    nowcast_metadata = 'nowcast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    nowcast_metadata = '_nowcast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
     process_nowcast_stations(urls, adcirc_stations, nowcast_metadata, args.gridname)
 
     # FORECAST ADCIRC
