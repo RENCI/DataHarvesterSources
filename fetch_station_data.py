@@ -45,6 +45,7 @@ from collections import OrderedDict
 GLOBAL_TIMEZONE='gmt' # Every source is set or presumed to return times in the zone
 
 GLOBAL_FILL_VALUE='-99999'
+UNITS='meters' # Now the code only applies to WL
 
 def replaceAndFill(df):
     """
@@ -188,8 +189,8 @@ class adcirc_fetch_data(fetch_station_data):
         self._units='metric'
         self._datum=datum
         self._periods=periods
-        if runtype.upper()!='NOWCAST' and runtype.upper()!='FORECAST':
-            utilities.log.info('ADCIRC: runtype not set to either nowcast or forecast. Will result in poor metadata NAME value')
+        if runtype.upper()=='None':
+            utilities.log.info('ADCIRC: runtype not set. Will result in poor metadata NAME value')
         self._runtype=runtype 
         if gridname=='None':
             utilities.log.info('ADCIRC: gridname not specified. Will result in poor metadata NAME value') 
@@ -315,7 +316,7 @@ class adcirc_fetch_data(fetch_station_data):
         # meta['NAME']= nc.agrid # Long form of grid name description # Or possible use nc.version
         meta['NAME']='_'.join([self._gridname.upper(),self._runtype.upper()]) # These values come from the calling routine and should be usually nowcast, forecast
         #meta['VERSION'] = nc.version
-        meta['UNITS'] ='metric'
+        meta['UNITS'] ='meters'
         meta['TZ'] = GLOBAL_TIMEZONE # Can look in nc.comments
         meta['OWNER'] = nc.source
         meta['STATE'] = np.nan 
@@ -345,7 +346,7 @@ class noaanos_fetch_data(fetch_station_data):
     products={ 'water_level':'water_level'  # 6 min
             }
 
-    def __init__(self, station_id_list, periods, product='water_level', interval=None, # units='metric', 
+    def __init__(self, station_id_list, periods, product='water_level', interval=None, units='metric', 
                 datum='MSL'):
         try:
             self._product=self.products[product] # product
@@ -354,7 +355,7 @@ class noaanos_fetch_data(fetch_station_data):
             sys.exit(1)
 
         self._interval=interval
-        #self._units=units # Do not set this becaseu subsequent metadata calls will only return the native units not what you set here.
+        self._units='metric' # Redundant cleanup TODO
         self._datum=datum
         super().__init__(station_id_list, periods)
 
@@ -410,7 +411,7 @@ class noaanos_fetch_data(fetch_station_data):
                                                 end_date=timeout,
                                                 product=self._product,
                                                 datum=self._datum,
-                                                #units=self._units,
+                                                units=self._units,
                                                 interval=self._interval, # If none defaults to 6min
                                                 time_zone=GLOBAL_TIMEZONE)[self._product].to_frame()
                 dx, multivalue = self.check_duplicate_time_entries(station, dx)
@@ -431,6 +432,7 @@ class noaanos_fetch_data(fetch_station_data):
                 utilities.log.error('NOAA/NOS data error: {}'.format(e))
         try:
             df_data = pd.concat(datalist)
+            df_data=df_data.astype(float)
         except Exception as e:
             utilities.log.error('NOAA/NOS concat error: {}'.format(e))
         return df_data
@@ -459,7 +461,7 @@ class noaanos_fetch_data(fetch_station_data):
         meta['LAT'] = location.metadata['lat']
         meta['LON'] = location.metadata['lng']
         meta['NAME'] =  location.metadata['name']
-        meta['UNITS'] = location.sensors['units'] # This can DIFFER from the actual data. For data you can specify a transform to metric.
+        meta['UNITS'] = UNITS # Manual override bcs -> location.sensors['units'] # This can DIFFER from the actual data. For data you can specify a transform to metric.
         #meta['ELEVATION'] = location['elevation']
         meta['TZ'] = GLOBAL_TIMEZONE
         meta['OWNER'] = 'NOAA/NOS'
@@ -474,6 +476,8 @@ class noaanos_fetch_data(fetch_station_data):
 ##
 ## Fetching the Station data from Contrails managed by OneRain
 ##
+
+## Must MANUALLY convert to meters here
 
 class contrails_fetch_data(fetch_station_data):
     """
@@ -578,13 +582,15 @@ class contrails_fetch_data(fetch_station_data):
             data = dict_data['onerain']['response']['general']
             dx = pd.DataFrame(data['row']) # Will  be <= 5000
             dx = dx[['data_time','data_value']]
+            utilities.log.info('NOAA/NOS. Converting to meters')
             dx.columns = ['TIME',station]
             dx.set_index('TIME',inplace=True)
             dx.index = pd.to_datetime(dx.index)
-            dx = dx.astype(float) # need to do this later if plotting. So do it now.
             datalist.append(dx)
         try:
+            # Manually convert all values to meters
             df_data = pd.concat(datalist)
+            df_data=df_data.astype(float) * 0.3048 # Convert to meters
         except Exception as e:
             utilities.log.error('Contrails concat error: {}'.format(e))
         return df_data
@@ -643,7 +649,7 @@ class contrails_fetch_data(fetch_station_data):
         meta['LAT'] = data2['latitude_dec']
         meta['LON'] = data2['longitude_dec']
         meta['NAME'] = data['location']
-        meta['UNITS'] = data['units'].replace('.','') # I have seen . in some labels
+        meta['UNITS'] = UNITS # Manual override bcs -> data['units'].replace('.','') # I have seen . in some labels
         meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
         ###meta['ELEVATION'] = data['elevation']
         meta['OWNER'] = self._owner # data2 always returns the value=DEPRECATED data2['owner']

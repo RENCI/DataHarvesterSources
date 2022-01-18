@@ -247,8 +247,6 @@ def process_noaa_stations(time_range, noaa_stations, metadata):
         noaanos = noaanos_fetch_data(noaa_stations, time_range, 'water_level')
         df_noaa_data = noaanos.aggregate_station_data()
         df_noaa_meta = noaanos.aggregate_station_metadata()
-        print('POOP')
-        print(df_noaa_meta)
         df_noaa_data_out,df_noaa_meta = format_data_frames(df_noaa_data,df_noaa_meta)
         # Save data
         noaafile=utilities.writeCsv(df_noaa_data_out, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=metadata)
@@ -377,7 +375,7 @@ def main(args):
     forecast_vr_metadata = '_FakeVeerRight_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
     process_forecast_stations(urls_fc, adcirc_stations, forecast_vr_metadata, args.gridname)
 
-    print('Finished metadata is {}'.format(metadata))
+    print('Finished')
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
