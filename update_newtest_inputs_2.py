@@ -1,3 +1,6 @@
+## NOTE adcirc combined files may have duplicate times
+
+
 #!/usr/bin/env python
 #
 # Here we are simulating having run a series of fetches from the Harvester and storing the data to csv files.
@@ -252,7 +255,7 @@ def process_noaa_stations(time_range, noaa_stations, metadata):
         noaafile=utilities.writeCsv(df_noaa_data_out, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=metadata)
         noaametafile=utilities.writeCsv(df_noaa_meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=metadata)
         utilities.log.info('NOAA data has been stored {},{}'.format(noaafile,noaametafile))
-    except IndexError as e:
+    except Exception as e:
         utilities.log.error('Error: NOAA: {}'.format(e))
 
 def process_contrails_stations(periods, contrails_stations, metadata):
@@ -266,7 +269,7 @@ def process_contrails_stations(periods, contrails_stations, metadata):
         contrailsfile=utilities.writeCsv(df_contrails_data_out, rootdir=rootdir,subdir='',fileroot='contrails_stationdata',iometadata=metadata)
         contrailsmetafile=utilities.writeCsv(df_contrails_meta, rootdir=rootdir,subdir='',fileroot='contrails_stationdata_meta',iometadata=metadata)
         utilities.log.info('CONTRAILS data has been stored {},{}'.format(contrailsfile,contrailsmetafile))
-    except IndexError as e:
+    except Exception as e:
         utilities.log.error('Error: CONTRAILS: {}'.format(e))
 
 def process_nowcast_stations(urls, adcirc_stations, metadata, gridname):

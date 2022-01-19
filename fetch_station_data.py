@@ -14,6 +14,7 @@
 # Note the df_meta method can be a little tricky to implement a proper format. 
 #
 import os,sys
+import numpy as np
 import pandas as pd
 import xarray as xr
 import datetime as dt
@@ -116,14 +117,26 @@ class fetch_station_data(object):
                 message = template.format(type(ex).__name__, ex.args)
                 utilities.log.warn('Error Value: Probably the station simply had no data; Skip {}, msg {}'.format(station, message))
         if len(aggregateData)==0:
-            utilities.log.warn('No site data was found for the given site_id list. Perhaps the server is down Exit')
+            utilities.log.warn('No site data was found for the given site_id list. Perhaps the server is down or file doesnt exist')
+            return np.nan
             #sys.exit(1) # Keep processing the remaining list
         utilities.log.info('{} Stations were excluded'.format(len(excludedStations)))
         utilities.log.info('{} Stations included'.format(len(aggregateData)))
-        df_data = pd.concat(aggregateData, axis=1)
-        # I have seen loits of nans coming from ADCIRC
-        #df_data.dropna(how='all', axis=1, inplace=True)
-        df_data = replaceAndFill(df_data)
+        try:
+            df_data = pd.concat(aggregateData, axis=1)
+            idx = df_data.index
+            utilities.log.info('Check for time duplicates')
+            if idx.duplicated().any():
+                utilities.log.info("Duplicated data times found . will keep first value(s) only")
+                df_data = df_data.loc[~df_data.index.duplicated(keep='first')]
+            if len(idx) != len(df_data.index):
+                utilities.log.warning('had duplicate times {} {}'.format(len(idx),len(df_data.index)))
+            # I have seen lots of nans coming from ADCIRC
+            #df_data.dropna(how='all', axis=1, inplace=True)
+            df_data = replaceAndFill(df_data)
+        except Exception as e:
+            utilities.log.error('Aggregate: error: {}'.format(ex))
+            df_data=np.nan
         return df_data
 
 # TODO Need to sync with df_data
@@ -195,41 +208,54 @@ class adcirc_fetch_data(fetch_station_data):
         if gridname=='None':
             utilities.log.info('ADCIRC: gridname not specified. Will result in poor metadata NAME value') 
         self._gridname=gridname
-        available_stations = self._fetch_adcirc_nodes_from_stations(station_id_list, periods[0])
+        available_stations = self._fetch_adcirc_nodes_from_stations(station_id_list, periods)
         utilities.log.info('List of generated stations {}'.format(available_stations))
         super().__init__(available_stations, periods) # Pass in the full dict
 
-    def _fetch_adcirc_nodes_from_stations(self, stations, period) -> OrderedDict():
+    def _fetch_adcirc_nodes_from_stations(self, stations, periods) -> OrderedDict():
         """
+        periods contains all the possible urls. We do this because TDS may or may not actually
+        have one or more of the requested urls. So we keep checking urls for stations until no more
+        urls exist. If none, then die.
+
         Input:
             station <str>. A list of NOAA/Contrails station ids
-            periods <list>. A url-61 value. 
+            periods <list>. The list of url-61 values. 
 
         Return: list of tuples (stationid,nodeid). Superfluous stationids are ignored
         """
-        url61 = period # Only look at a single fort.61.nc file is needed for now
-        ds = xr.open_dataset(url61)
-        ds = ds.transpose()
-        ds.attrs = []
-        sn = ds['station_name'].values
-        snn = []
-        for i in range(len(sn)): # This gets the stationids IN THE FILE not necc what we requested.
-            ts = str(sn[i].strip().decode("utf-8"))
-            #print(ts)
-            snn.append(str(ts.split(' ')[0])) # Strips off actual name leaving only the leading id
-        # Get intersection of input station ids and available ids
-        snn_pruned=[str(x) for x in stations if x in snn]
-        idx = list() # Bukld a list of tuples (stationid,nodeid)
-        for ss in stations: # Loop over stations to maintain order
-            s = ss # Supposed to pull out the first word
-            # Cnvert to a try clause
-            if s in snn_pruned:
-                utilities.log.debug("{} is in list.".format(s))
-                idx.append( (s,snn.index(s)) )
-            else:
-                utilities.log.info("{} not in fort.61.nc station_name list".format(s))
-                #sys.exit(1)
-        return idx # Need this to get around loop structure in aggregate etch 
+        print('Attempt to find ADCIRC stations')
+        for url61 in periods:
+            print('url61')
+            try:
+                ds = xr.open_dataset(url61)
+                ds = ds.transpose()
+                ds.attrs = []
+                sn = ds['station_name'].values
+                snn = []
+                for i in range(len(sn)): # This gets the stationids IN THE FILE not necc what we requested.
+                    ts = str(sn[i].strip().decode("utf-8"))
+                    #print(ts)
+                    snn.append(str(ts.split(' ')[0])) # Strips off actual name leaving only the leading id
+                # Get intersection of input station ids and available ids
+                snn_pruned=[str(x) for x in stations if x in snn]
+                idx = list() # Bukld a list of tuples (stationid,nodeid)
+                for ss in stations: # Loop over stations to maintain order
+                    s = ss # Supposed to pull out the first word
+                    # Cnvert to a try clause
+                    if s in snn_pruned:
+                        utilities.log.debug("{} is in list.".format(s))
+                        idx.append( (s,snn.index(s)) )
+                    else:
+                        utilities.log.info("{} not in fort.61.nc station_name list".format(s))
+                        #sys.exit(1)
+                return idx # Need this to get around loop structure in aggregate etch 
+            except OSError:
+                utilities.log.warn("Could not open/read a specific fort.61 URL. Try next iteration {}".format(url61))
+            except Exception:
+                utilities.log.error('Could not find ANY fort.61 urls from which to get stations lists')
+        utilities.log.info('Bottomed out in _fetch_adcirc_nodes_from_stations')
+        return np.nan
 
 ##
 ## Criky. When I initially inserted nodelat/lon into meta, then subsequently updated COUNTY as np.nan
@@ -435,6 +461,7 @@ class noaanos_fetch_data(fetch_station_data):
             df_data=df_data.astype(float)
         except Exception as e:
             utilities.log.error('NOAA/NOS concat error: {}'.format(e))
+            df_data = np.nan
         return df_data
 
 # TODO The NOAA metadata scheme is Horrible for what we need. This example is very tentative 
@@ -582,7 +609,7 @@ class contrails_fetch_data(fetch_station_data):
             data = dict_data['onerain']['response']['general']
             dx = pd.DataFrame(data['row']) # Will  be <= 5000
             dx = dx[['data_time','data_value']]
-            utilities.log.info('NOAA/NOS. Converting to meters')
+            utilities.log.info('Contrails. Converting to meters')
             dx.columns = ['TIME',station]
             dx.set_index('TIME',inplace=True)
             dx.index = pd.to_datetime(dx.index)
@@ -590,9 +617,11 @@ class contrails_fetch_data(fetch_station_data):
         try:
             # Manually convert all values to meters
             df_data = pd.concat(datalist)
+            utilities.log.info('Contrails. Converting to meters')
             df_data=df_data.astype(float) * 0.3048 # Convert to meters
         except Exception as e:
-            utilities.log.error('Contrails concat error: {}'.format(e))
+            utilities.log.error('Contrails failed concat: error: {}'.format(e))
+            df_data=np.nan
         return df_data
 
 # Note it is possible to get all station metadata but only a subset of station data
@@ -615,7 +644,7 @@ class contrails_fetch_data(fetch_station_data):
         # Something wrong with GTNN7 the second dict is way too big as a LIST. The list doesn't include GTNN7
         # Sent bug report to contrails.Dec 8, 2021
         # The second dict for GTNN7 contains LOTS of station's data which corrupts the algorithm
-        # Switch to using or_site_id
+        # Solution: Switch to using or_site_id
         meta=dict() 
         # 1
         METHOD = 'GetSensorMetaData'
