@@ -81,7 +81,7 @@ def return_list_of_daily_timeranges(time_tuple)-> list():
     today = dt.datetime.today()
     if time_end > today:
           time_end = today
-          print('Truncating list: new end time is {} '.format(dt.datetime.strftime(today, dformat)))
+          print('Contrails: Truncating list: new end time is {} '.format(dt.datetime.strftime(today, dformat)))
                            
     #What hours/min/secs are we starting on - compute proper interval shifting
     
@@ -173,7 +173,7 @@ def returnListOfURLRanges(start_time, end_time, adctype='nowcast'):
     today = dt.datetime.today()
     if time_end > today:
           time_end = today
-          print('Truncating list: new end time is {} '.format(dt.datetime.strftime(today, dformat)))             
+          print('ADCIRC Truncating list: new end time is {} '.format(dt.datetime.strftime(today, dformat)))             
     # Now find a list of times on the HH=00,06,12,18 <= time_end with the start time
     # nearest <= time_start
     h_final=closest_number(time_end.hour, 6, adctype='nowcast')
@@ -287,7 +287,7 @@ def process_nowcast_stations(urls, adcirc_stations, metadata, gridname):
         utilities.log.error('Error: NOWCAST: {}'.format(e))
 
 def process_forecast_stations(urls_fc, adcirc_stations, metadata, gridname):
-    # Fetch the forecasty data
+    # Fetch the forecast data
     try:
         adcirc_fc = adcirc_fetch_data(adcirc_stations, urls_fc, 'water_level', gridname=gridname, runtype='forecast')
         df_adcirc_fc_data = adcirc_fc.aggregate_station_data()
@@ -337,19 +337,21 @@ def main(args):
 
     # Now build urls
     # NOWCASTS
-    nowfrmt='http://tds.renci.org:8080/thredds/dodsC/2021/nam/%s/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc'
+    nowfrmt='http://tds.renci.org:8080/thredds/dodsC/%s/nam/%s/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc'
     listtimes = returnListOfURLRanges(starttime, endtime, adctype='nowcast')
     urls=list()
     for time in listtimes:
-        url=nowfrmt % (time.strftime('%Y%m%d%H'))
+        year=time.strftime('%Y')
+        url=nowfrmt % (year, time.strftime('%Y%m%d%H'))
         urls.append(url) # This would replace PERIODS in the DH fetcher codes
 
     #FORECASTS
-    forefrmt='http://tds.renci.org:8080/thredds/dodsC/2021/nam/%s/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc'   
+    forefrmt='http://tds.renci.org:8080/thredds/dodsC/%s/nam/%s/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc'   
     listtimes = returnListOfURLRanges(starttime, endtime, adctype='forecast')
     urls_fc=list()
     for time in listtimes:
-        url=forefrmt % (time.strftime('%Y%m%d%H'))
+        year=time.strftime('%Y')
+        url=forefrmt % (year, time.strftime('%Y%m%d%H'))
         urls_fc.append(url) # This would replace PERIODS in the DH fetcher codes
 
     #print(urls)
@@ -368,15 +370,15 @@ def main(args):
 
     # NOWCAST ADCIRC
     nowcast_metadata = '_nowcast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    process_nowcast_stations(urls, adcirc_stations, nowcast_metadata, args.gridname)
+    #process_nowcast_stations(urls, adcirc_stations, nowcast_metadata, args.gridname)
 
     # FORECAST ADCIRC
     forecast_metadata = '_forecast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    process_forecast_stations(urls_fc, adcirc_stations, forecast_metadata, args.gridname)
+    #process_forecast_stations(urls_fc, adcirc_stations, forecast_metadata, args.gridname)
 
     # FAKE veerright FORECAST ADCIRC
     forecast_vr_metadata = '_FakeVeerRight_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    process_forecast_stations(urls_fc, adcirc_stations, forecast_vr_metadata, args.gridname)
+    #process_forecast_stations(urls_fc, adcirc_stations, forecast_vr_metadata, args.gridname)
 
     print('Finished')
 

@@ -106,7 +106,7 @@ class fetch_station_data(object):
         excludedStations=list()
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         for station in self._stations:
-            print(station)    
+            utilities.log.info(station)    
             try:
                 dx = self.fetch_single_product(station, self._periods)
                 aggregateData.append(resample_and_interpolate(dx))
@@ -116,9 +116,10 @@ class fetch_station_data(object):
                 excludedStations.append(station)
                 message = template.format(type(ex).__name__, ex.args)
                 utilities.log.warn('Error Value: Probably the station simply had no data; Skip {}, msg {}'.format(station, message))
+
         if len(aggregateData)==0:
             utilities.log.warn('No site data was found for the given site_id list. Perhaps the server is down or file doesnt exist')
-            return np.nan
+            ##return np.nan
             #sys.exit(1) # Keep processing the remaining list
         utilities.log.info('{} Stations were excluded'.format(len(excludedStations)))
         utilities.log.info('{} Stations included'.format(len(aggregateData)))
@@ -135,8 +136,8 @@ class fetch_station_data(object):
             #df_data.dropna(how='all', axis=1, inplace=True)
             df_data = replaceAndFill(df_data)
         except Exception as e:
-            utilities.log.error('Aggregate: error: {}'.format(ex))
-            df_data=np.nan
+            utilities.log.error('Aggregate: error: {}'.format(e))
+            ##df_data=np.nan
         return df_data
 
 # TODO Need to sync with df_data
@@ -194,6 +195,19 @@ class adcirc_fetch_data(fetch_station_data):
     products={ 'water_level':'water_level'  # 6 min
             }
 
+    def _removeEmptyURLPointers(self, in_periods):
+        """
+        Loop through the entire list and remove any entries that thorw a File Not Found error
+        """
+        new_periods=list()
+        for url in in_periods:
+            try:
+                nc = nc4.Dataset(url)
+                new_periods.append(url)
+            except OSError as e:
+                utilities.log.info('URL not found: Remove url {}'.format(url))
+        return new_periods
+
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
                 datum='MSL', gridname='None', runtype='None'):
@@ -201,7 +215,7 @@ class adcirc_fetch_data(fetch_station_data):
         #self._interval=interval 
         self._units='metric'
         self._datum=datum
-        self._periods=periods
+        periods=periods
         if runtype.upper()=='None':
             utilities.log.info('ADCIRC: runtype not set. Will result in poor metadata NAME value')
         self._runtype=runtype 
@@ -209,7 +223,11 @@ class adcirc_fetch_data(fetch_station_data):
             utilities.log.info('ADCIRC: gridname not specified. Will result in poor metadata NAME value') 
         self._gridname=gridname
         available_stations = self._fetch_adcirc_nodes_from_stations(station_id_list, periods)
-        utilities.log.info('List of generated stations {}'.format(available_stations))
+        if available_stations==None:
+            utilities.log.error('No valid fort.61 files were found: Abort')
+            #sys.exit(1)
+        utilities.log.info('List of ADCIRC generated stations {}'.format(available_stations))
+        periods = self._removeEmptyURLPointers(periods)
         super().__init__(available_stations, periods) # Pass in the full dict
 
     def _fetch_adcirc_nodes_from_stations(self, stations, periods) -> OrderedDict():
@@ -224,9 +242,9 @@ class adcirc_fetch_data(fetch_station_data):
 
         Return: list of tuples (stationid,nodeid). Superfluous stationids are ignored
         """
-        print('Attempt to find ADCIRC stations')
+        utilities.log.info('Attempt to find ADCIRC stations')
         for url61 in periods:
-            print('url61')
+            utilities.log.info('Fetch stations: {} '.format(url61))
             try:
                 ds = xr.open_dataset(url61)
                 ds = ds.transpose()
@@ -248,14 +266,15 @@ class adcirc_fetch_data(fetch_station_data):
                         idx.append( (s,snn.index(s)) )
                     else:
                         utilities.log.info("{} not in fort.61.nc station_name list".format(s))
-                        #sys.exit(1)
+                        ##sys.exit(1)
                 return idx # Need this to get around loop structure in aggregate etch 
             except OSError:
                 utilities.log.warn("Could not open/read a specific fort.61 URL. Try next iteration {}".format(url61))
             except Exception:
                 utilities.log.error('Could not find ANY fort.61 urls from which to get stations lists')
-        utilities.log.info('Bottomed out in _fetch_adcirc_nodes_from_stations')
-        return np.nan
+                utilities.log.info('Bottomed out in _fetch_adcirc_nodes_from_stations')
+                raise
+        #return np.nan
 
 ##
 ## Criky. When I initially inserted nodelat/lon into meta, then subsequently updated COUNTY as np.nan
@@ -263,6 +282,9 @@ class adcirc_fetch_data(fetch_station_data):
 ## No idea why at this time. Clearly another SNAFU driven by duck-typing issues. Jan 2022. Even though
 ## the nodelat/lon was actually a single element masked array (which I corrected) why would that impact
 ## The value of meta['COUNTY'] ?
+##
+## A Series of ARCIRC urls _may_ point to a url that doesn't exist.l It should have but sometimes not.
+## So we pre-filter the url periods lists so no empties show up here
 ##
     def fetch_single_product(self, station_tuple, periods) -> pd.DataFrame:
         """
@@ -278,8 +300,10 @@ class adcirc_fetch_data(fetch_station_data):
         node=station_tuple[1]
         datalist=list()
         for url in periods:
-            utilities.log.info('ADCIRC url {}'.format(url))
-            nc = nc4.Dataset(url)
+            try:
+                nc = nc4.Dataset(url)
+            except Exception as e:
+                utilities.log.error('URL not found should never happen here. Should have been prefiltered')
             # we need to test access to the netCDF variables, due to infrequent issues with
             # netCDF files written with v1.8 of HDF5.
             if "zeta" not in nc.variables.keys():
@@ -302,7 +326,7 @@ class adcirc_fetch_data(fetch_station_data):
         try:
             df_data = pd.concat(datalist)
         except Exception as e:
-            utilities.log.error('ADCIRC concat error: {}'.format(e))
+            print('ADCIRC concat error: {}'.format(e))
         return df_data
 
 ##
