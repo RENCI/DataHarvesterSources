@@ -204,7 +204,11 @@ def get_noaa_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HA
     noaa_stations=[word.rstrip() for word in noaa_stations[1:]] # Strip off comment line
     return noaa_stations
 
-def get_contrails_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations.txt'):
+# We now have TWO files:
+# /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_rivers.txt'
+# /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_coastal.txt'
+
+def get_contrails_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_rivers.txt'):
     """
     A convenience method to fetch river guage lists. 
     Contrails data
@@ -213,7 +217,7 @@ def get_contrails_stations(fname='/projects/sequence_analysis/vol1/prediction_wo
     with open(fname) as f:
         for station in f:
             contrails_stations.append(station)
-    contrails_stations=[word.rstrip() for word in contrails_stations[1:]] # Strip off comment line
+    contrails_stations=[word.rstrip() for word in contrails_stations[2:]] # Strip off comment line and header line
     return contrails_stations
 
 def format_data_frames(df, df_meta):
@@ -258,10 +262,10 @@ def process_noaa_stations(time_range, noaa_stations, metadata):
     except Exception as e:
         utilities.log.error('Error: NOAA: {}'.format(e))
 
-def process_contrails_stations(periods, contrails_stations, metadata):
+def process_contrails_stations(periods, contrails_stations, product_class, metadata):
     # Fetch the data
     try:
-        contrails = contrails_fetch_data(contrails_stations, periods, config, 'water_level', 'NCEM')
+        contrails = contrails_fetch_data(contrails_stations, periods, config, 'water_level', product_class, 'NCEM')
         df_contrails_data = contrails.aggregate_station_data()
         df_contrails_meta = contrails.aggregate_station_metadata()
         df_contrails_data_out,df_contrails_meta = format_data_frames(df_contrails_data,df_contrails_meta)
@@ -328,8 +332,11 @@ def main(args):
 
     ## Get default stations: Methods will quietly ignore superfluous stations
     noaa_stations=get_noaa_stations()
-    contrails_stations=get_contrails_stations()
-    adcirc_stations=noaa_stations+contrails_stations
+
+    contrails_stations_rivers=get_contrails_stations('/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_rivers.txt')
+    contrails_stations_coastal=get_contrails_stations('/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_coastal.txt')
+
+    adcirc_stations=noaa_stations+contrails_stations_rivers+contrails_stations_coastal
 
     # Build ranges for contrails ( and noaa/nos if you like)
     time_range=[(starttime,endtime)] # Can be directly used by NOAA 
@@ -362,11 +369,15 @@ def main(args):
 
     #NOAA/NOS
     noaa_metadata='_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    process_noaa_stations(time_range, noaa_stations, noaa_metadata)
+    #process_noaa_stations(time_range, noaa_stations, noaa_metadata)
 
     #Contrails - useperiods instead of timerange
-    contrails_metadata='_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    process_contrails_stations(periods, contrails_stations, contrails_metadata)
+    # Rivers
+    contrails_river_metadata='_RIVERS_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    process_contrails_stations(periods, contrails_stations_rivers, 20, contrails_river_metadata)
+    # Coastal
+    contrails_coastal_metadata='_COASTAL_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    process_contrails_stations(periods, contrails_stations_coastal, 94, contrails_coastal_metadata)
 
     # NOWCAST ADCIRC
     nowcast_metadata = '_nowcast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')

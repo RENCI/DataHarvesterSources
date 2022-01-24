@@ -573,7 +573,11 @@ class contrails_fetch_data(fetch_station_data):
     # We expect the calling metyhod to have resolved the different MAP terms for a given source
     # Currently only tested with the NCEM owner
 
-    def __init__(self, station_id_list, periods, config, product='water_level', owner='NCEM'):
+    def __init__(self, station_id_list, periods, config, product='water_level', product_class=None, owner='NCEM'):
+        self.product_class=product_class
+        if self.product_class==None:
+            utilities.log.error("Must specify a class of 20 or 94 depending on your data selection")
+            sys.exit(1)
         self._owner=owner
         try:
             self._product=self.products[product] # product
@@ -605,6 +609,8 @@ class contrails_fetch_data(fetch_station_data):
 #
     def fetch_single_product(self, station, periods) -> pd.DataFrame: 
         """
+        TODO Update this. CLASSDICT is not used.
+
         For a single Contrails site_id, process all tuples from the input periods list
         and aggregate them into a dataframe with index pd.timestamps and a single column
         containing the desired CLASSDICT[...] values. Rename the column to station id
@@ -620,7 +626,7 @@ class contrails_fetch_data(fetch_station_data):
         datalist=list()
         for tstart,tend in periods:
             utilities.log.info('Iterate: start time is {}, end time is {}, station is {}'.format(tstart,tend,station))
-            indict = {'method': METHOD, 'class': self.CLASSDICT[self._product],
+            indict = {'method': METHOD, 'class': self.product_class,
                  'system_key': self._systemkey ,'site_id': station,
                  'tz': GLOBAL_TIMEZONE,
                  'data_start': tstart,'data_end': tend }
