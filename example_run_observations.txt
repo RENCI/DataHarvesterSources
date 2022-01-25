@@ -1,0 +1,3 @@
+python fetch_data.py --data_source 'CONTRAILS' --data_product 'coastal_water_level'
+python fetch_data.py --data_source 'CONTRAILS' --data_product 'river_water_level'
+python fetch_data.py --data_source 'NOAA' --data_product 'water_level'

@@ -262,10 +262,10 @@ def process_noaa_stations(time_range, noaa_stations, metadata):
     except Exception as e:
         utilities.log.error('Error: NOAA: {}'.format(e))
 
-def process_contrails_stations(periods, contrails_stations, product_class, metadata):
+def process_contrails_stations(periods, contrails_stations, product_type, metadata):
     # Fetch the data
     try:
-        contrails = contrails_fetch_data(contrails_stations, periods, config, 'water_level', product_class, 'NCEM')
+        contrails = contrails_fetch_data(contrails_stations, periods, config, product=product_type, owner='NCEM')
         df_contrails_data = contrails.aggregate_station_data()
         df_contrails_meta = contrails.aggregate_station_metadata()
         df_contrails_data_out,df_contrails_meta = format_data_frames(df_contrails_data,df_contrails_meta)
@@ -373,11 +373,14 @@ def main(args):
 
     #Contrails - useperiods instead of timerange
     # Rivers
+# def __init__(self, station_id_list, periods, config, product='river_water_level', owner='NCEM'):
+
     contrails_river_metadata='_RIVERS_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    process_contrails_stations(periods, contrails_stations_rivers, 20, contrails_river_metadata)
+    process_contrails_stations(periods, contrails_stations_rivers, 'river_water_level', contrails_river_metadata)
+
     # Coastal
     contrails_coastal_metadata='_COASTAL_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    process_contrails_stations(periods, contrails_stations_coastal, 94, contrails_coastal_metadata)
+    process_contrails_stations(periods, contrails_stations_coastal, 'coastal_water_level', contrails_coastal_metadata)
 
     # NOWCAST ADCIRC
     nowcast_metadata = '_nowcast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')

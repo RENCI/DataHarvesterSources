@@ -542,13 +542,17 @@ class contrails_fetch_data(fetch_station_data):
         a valid PRODUCT id <str>: See CLASSDICT definitions for specifics
     """
     # dict( persistant tag: source speciific tag )
-    products={ 'water_level':'Stage'  # 6 min
+
+# See Tom's email Regarding coastal versus river class values
+
+    products={ 'river_water_level':'Stage', 'coastal_water_level':'Water Elevation'
             }
 
     CLASSDICT = {
         'Rain Increment':10,
         'Rain Accumulation':11,
         'Stage':20,
+        'Water Elevation':94,
         'Flow Volume':25,
         'Air Temperature':30,
         'Fuel Temperature':38,
@@ -573,16 +577,13 @@ class contrails_fetch_data(fetch_station_data):
     # We expect the calling metyhod to have resolved the different MAP terms for a given source
     # Currently only tested with the NCEM owner
 
-    def __init__(self, station_id_list, periods, config, product='water_level', product_class=None, owner='NCEM'):
-        self.product_class=product_class
-        if self.product_class==None:
-            utilities.log.error("Must specify a class of 20 or 94 depending on your data selection")
-            sys.exit(1)
+    def __init__(self, station_id_list, periods, config, product='river_water_level', owner='NCEM'):
         self._owner=owner
         try:
             self._product=self.products[product] # product
+            #self.product_class=str(CLASSDICT[self._product]) # For now should eval to only 20 or 94.
         except KeyError:
-            utilities.log.error('Contrails No such product key. Input {}, Avaibale {}'.format(product, self.products.keys()))
+            utilities.log.error('Contrails No such product key. Input {}, Available {}'.format(product, self.products.keys()))
             sys.exit(1)
         print(self._product)
         self._systemkey=config['systemkey']
@@ -609,8 +610,6 @@ class contrails_fetch_data(fetch_station_data):
 #
     def fetch_single_product(self, station, periods) -> pd.DataFrame: 
         """
-        TODO Update this. CLASSDICT is not used.
-
         For a single Contrails site_id, process all tuples from the input periods list
         and aggregate them into a dataframe with index pd.timestamps and a single column
         containing the desired CLASSDICT[...] values. Rename the column to station id
@@ -626,7 +625,7 @@ class contrails_fetch_data(fetch_station_data):
         datalist=list()
         for tstart,tend in periods:
             utilities.log.info('Iterate: start time is {}, end time is {}, station is {}'.format(tstart,tend,station))
-            indict = {'method': METHOD, 'class': self.product_class,
+            indict = {'method': METHOD, 'class': self.CLASSDICT[self._product],
                  'system_key': self._systemkey ,'site_id': station,
                  'tz': GLOBAL_TIMEZONE,
                  'data_start': tstart,'data_end': tend }
@@ -657,6 +656,7 @@ class contrails_fetch_data(fetch_station_data):
 # Note it is possible to get all station metadata but only a subset of station data
 # According to oneRain the current best way to access the meta data is using or_site_id
 #
+# river and coastal metadata return different kind of objects
     def fetch_single_metadata(self, station) -> pd.DataFrame:      
         """
         For a single Contrails site_id fetch the associated metadata.
@@ -675,6 +675,8 @@ class contrails_fetch_data(fetch_station_data):
         # Sent bug report to contrails.Dec 8, 2021
         # The second dict for GTNN7 contains LOTS of station's data which corrupts the algorithm
         # Solution: Switch to using or_site_id
+        #
+        # Needed a more extensive SensorMetaData approach
         meta=dict() 
         # 1
         METHOD = 'GetSensorMetaData'
@@ -684,13 +686,16 @@ class contrails_fetch_data(fetch_station_data):
         response = requests.get(url)
         dict_data = xmltodict.parse(response.content)
         data = dict_data['onerain']['response']['general']['row']
-        #meta['NAME'] = data['location']
-        ##meta['STATION'] = data['site_id'] # Do not add here will cause problems
-        #meta['SENSOR'] = data['sensor_id'] 
-        #meta['PRODUCT'] = data['description']
-        #meta['UNITS'] = data['units'].replace('.','') # I have seen . in some labels
-        #meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
-        or_site_id= data['or_site_id'] 
+
+        if isinstance(data, list):
+            for entry in data:
+                if entry['sensor_class']==self.CLASSDICT[self._product]:
+                    list_sensor_id = entry['or_sensor_id'] # Yes a list of ordered dicts.
+                    or_site_id = entry['or_site_id']
+                    break
+        else:
+            or_site_id= data['or_site_id']
+        utilities.log.info('Current or_site_id is {}'.format(or_site_id))
         # 2
         METHOD = 'GetSiteMetaData'
         #indict = {'method': METHOD,'tz':GLOBAL_TIMEZONE, 'class': self.CLASSDICT[self._product],
@@ -713,7 +718,7 @@ class contrails_fetch_data(fetch_station_data):
         ###meta['ELEVATION'] = data['elevation']
         meta['OWNER'] = self._owner # data2 always returns the value=DEPRECATED data2['owner']
         meta['STATE'] = np.nan # None # data2['state']  # DO these work ?
-        meta['COUNTY'] = np.nan # None # data2['county']
+        #
         df_meta=pd.DataFrame.from_dict(meta, orient='index')
         df_meta.columns = [str(station)] 
         return df_meta
