@@ -151,21 +151,20 @@ PRODUCT='water_level'
 
 def process_noaa_stations(time_range, noaa_stations, metadata, data_product='water_level'):
     # Fetch the data
-    #try:
-    if data_product != 'water_level':
-        utilities.log.error('NOAA data product can only be: water_level')
-        sys.exit(1)
-    noaanos = noaanos_fetch_data(noaa_stations, time_range, data_product)
-    df_noaa_data = noaanos.aggregate_station_data()
-    df_noaa_meta = noaanos.aggregate_station_metadata()
-    df_noaa_data_out,df_noaa_meta = format_data_frames(df_noaa_data,df_noaa_meta)
-    # Save data
-    noaafile=utilities.writeCsv(df_noaa_data_out, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=metadata)
-    noaametafile=utilities.writeCsv(df_noaa_meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=metadata)
-    utilities.log.info('NOAA data has been stored {},{}'.format(noaafile,noaametafile))
-    #except Exception as e:
-    #    utilities.log.error('Error: NOAA: {}'.format(e))
-    #    return noaafile, noaametafile
+    try:
+        if data_product != 'water_level':
+            utilities.log.error('NOAA data product can only be: water_level')
+            sys.exit(1)
+        noaanos = noaanos_fetch_data(noaa_stations, time_range, data_product)
+        df_noaa_data = noaanos.aggregate_station_data()
+        df_noaa_meta = noaanos.aggregate_station_metadata()
+        df_noaa_data_out,df_noaa_meta = format_data_frames(df_noaa_data,df_noaa_meta)
+        # Save data
+        noaafile=utilities.writeCsv(df_noaa_data_out, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=metadata)
+        noaametafile=utilities.writeCsv(df_noaa_meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=metadata)
+        utilities.log.info('NOAA data has been stored {},{}'.format(noaafile,noaametafile))
+    except Exception as e:
+        utilities.log.error('Error: NOAA: {}'.format(e))
     return noaafile, noaametafile
 
 def process_contrails_stations(periods, contrails_stations, metadata, data_product='river_water_level'):
