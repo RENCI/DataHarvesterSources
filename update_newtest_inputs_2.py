@@ -369,7 +369,7 @@ def main(args):
 
     #NOAA/NOS
     noaa_metadata='_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    #process_noaa_stations(time_range, noaa_stations, noaa_metadata)
+    process_noaa_stations(time_range, noaa_stations, noaa_metadata)
 
     #Contrails - useperiods instead of timerange
     # Rivers
@@ -384,15 +384,15 @@ def main(args):
 
     # NOWCAST ADCIRC
     nowcast_metadata = '_nowcast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    #process_nowcast_stations(urls, adcirc_stations, nowcast_metadata, args.gridname)
+    process_nowcast_stations(urls, adcirc_stations, nowcast_metadata, args.gridname)
 
     # FORECAST ADCIRC
     forecast_metadata = '_forecast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    #process_forecast_stations(urls_fc, adcirc_stations, forecast_metadata, args.gridname)
+    process_forecast_stations(urls_fc, adcirc_stations, forecast_metadata, args.gridname)
 
     # FAKE veerright FORECAST ADCIRC
     forecast_vr_metadata = '_FakeVeerRight_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
-    #process_forecast_stations(urls_fc, adcirc_stations, forecast_vr_metadata, args.gridname)
+    process_forecast_stations(urls_fc, adcirc_stations, forecast_vr_metadata, args.gridname)
 
     print('Finished')
 
