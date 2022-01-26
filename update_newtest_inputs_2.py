@@ -1,6 +1,3 @@
-## NOTE adcirc combined files may have duplicate times
-
-
 #!/usr/bin/env python
 #
 # Here we are simulating having run a series of fetches from the Harvester and storing the data to csv files.

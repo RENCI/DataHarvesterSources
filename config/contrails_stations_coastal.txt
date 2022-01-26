@@ -1,5 +1,4 @@
-# Set of stations usually used for Contrails. These are CVOASTAL guages req class=94. From the file /projects/sequence_analysis/vol1/prediction_work/RIVERS_Contrails/PRELIMINARY_INFO/FIMAN_siter_coastalStatus.csv
-SITE_ID,IS_COASTAL
+# Set of stations usually used for Contrails. These are COASTAL guages req class=94. From the file /projects/sequence_analysis/vol1/prediction_work/RIVERS_Contrails/PRELIMINARY_INFO/FIMAN_siter_coastalStatus.csv
 30069
 30054
 30055

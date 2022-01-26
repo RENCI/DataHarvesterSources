@@ -1,6 +1,3 @@
-## NOTE adcirc combined files may have duplicate times
-
-
 #!/usr/bin/env python
 #
 # Here we are simulating having run a series of fetches from the Harvester and storing the data to csv files.
@@ -232,7 +229,7 @@ def main(args):
         time_range=[(starttime,endtime)] # Can be directly used by NOAA 
         # Use default station list
         noaa_stations=get_noaa_stations()
-        noaa_metadata='_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+        noaa_metadata='_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
         dataf, metaf = process_noaa_stations(time_range, noaa_stations, noaa_metadata, data_product)
 
     #Contrails
@@ -251,7 +248,7 @@ def main(args):
             periods=return_list_of_daily_timeranges(time_range[0]) # Must be broken up into days
             # Get default station list
             contrails_stations=get_contrails_stations(fname)
-            contrails_metadata=meta+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+            contrails_metadata=meta+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
             dataf, metaf = process_contrails_stations(periods, contrails_stations, contrails_metadata, data_product)
         except Exception as ex:
             utilities.log.warn('CONTRAILS error'.format(template.format(type(ex).__name__, ex.args)))
