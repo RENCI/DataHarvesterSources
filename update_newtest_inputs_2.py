@@ -365,30 +365,30 @@ def main(args):
     # metadata = '_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
 
     #NOAA/NOS
-    noaa_metadata='_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    noaa_metadata='_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
     process_noaa_stations(time_range, noaa_stations, noaa_metadata)
 
     #Contrails - useperiods instead of timerange
     # Rivers
 # def __init__(self, station_id_list, periods, config, product='river_water_level', owner='NCEM'):
 
-    contrails_river_metadata='_RIVERS_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    contrails_river_metadata='_RIVERS_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
     process_contrails_stations(periods, contrails_stations_rivers, 'river_water_level', contrails_river_metadata)
 
     # Coastal
-    contrails_coastal_metadata='_COASTAL_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    contrails_coastal_metadata='_COASTAL_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
     process_contrails_stations(periods, contrails_stations_coastal, 'coastal_water_level', contrails_coastal_metadata)
 
     # NOWCAST ADCIRC
-    nowcast_metadata = '_nowcast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    nowcast_metadata = '_nowcast_'+args.gridname.upper()+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
     process_nowcast_stations(urls, adcirc_stations, nowcast_metadata, args.gridname)
 
     # FORECAST ADCIRC
-    forecast_metadata = '_forecast_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    forecast_metadata = '_forecast_'+args.gridname.upper()+'_'+starttime.replace(' ','T') # +'_'+endtime.replace(' ','T')
     process_forecast_stations(urls_fc, adcirc_stations, forecast_metadata, args.gridname)
 
     # FAKE veerright FORECAST ADCIRC
-    forecast_vr_metadata = '_FakeVeerRight_'+args.gridname.upper()+'_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')
+    forecast_vr_metadata = '_FakeVeerRight_'+args.gridname.upper()+'_'+starttime.replace(' ','T') # +'_'+endtime.replace(' ','T')
     process_forecast_stations(urls_fc, adcirc_stations, forecast_vr_metadata, args.gridname)
 
     print('Finished')
