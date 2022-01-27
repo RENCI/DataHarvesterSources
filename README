@@ -1,28 +1,175 @@
-# To execute the update4 methods is simple.
-#
+Interpretation and usage information
+
+###### Issues and data
+
+# Observational data (NOAA and CONTRAILS) 
+
+The stoptime for observational data (NOAA/Contrails) is used in conjunction with the --ndays (look back) to specify the time range
+(inclusive) to fetch data. For Contrails, this time range must be broken up into < 24 hour groups and not span multiple days. So what can happen (?)
+Suppose you execute the job: python fetch_data.py --data_source 'CONTRAILS' --data_product 'river_water_level' --stoptime '2022-01-16 00:00:00'
+This will result in a set of time_periods (time_start,time_end) as follows: 
+
+INFO:dataharvester_services:Iterate: start time is 2022-01-14 00:00:00, end time is 2022-01-14 23:59:59, station is 30033
+INFO:dataharvester_services:Contrails. Converting to meters
+INFO:dataharvester_services:Iterate: start time is 2022-01-15 00:00:00, end time is 2022-01-15 23:59:59, station is 30033
+INFO:dataharvester_services:Contrails. Converting to meters
+INFO:dataharvester_services:Iterate: start time is 2022-01-16 00:00:00, end time is 2022-01-16 00:00:00, station is 30033
+ 
+The last period only has a single time in it (2022-01-16 00:00:00). This is not intrinsically a problem, BUT, Contrails rarely captures
+data on the 00Z time. As a result this last time period will return nothing and the FINAL data product time series will end as follows:
+
+(snip)
+2022-01-15T22:45:00,30033,0.3383280000000001
+2022-01-15T23:00:00,30033,0.3383280000000001
+2022-01-15T23:15:00,30033,0.3383280000000001
+2022-01-15T23:30:00,30033,0.3383280000000001
+
+So this _may_ seem inconsistent with the user supplied stoptime value but it is not.
+
+The NOAA data is simply passed the user specified time range and this has not been seen to happen for NOAA.
+
+# Output Observations filenames
+
+The water_level data nomenclature will be:
+
+{source}_stationdata_{group}_{stoptime}.csv
+
+where {group} only applies to contrails. Examples include:
+    contrails_stationdata_RIVERS_2022-01-16T00:00:00.csv
+    contrails_stationdata_COASTAL_2022-01-16T00:00:00.csv
+    noaa_stationdata_2022-01-16T00:00:00.csv
+
+The water_level metadata files follow a similar nomenclature
+
+{source}_stationdata_meta_{group}_{stoptime}.csv
+
+where {group} only applies to contrails. Examples include:
+    contrails_stationdata_meta_RIVERS_2022-01-16T00:00:00.csv
+    contrails_stationdata_meta_COASTAL_2022-01-16T00:00:00.csv
+    noaa_stationdata_meta_2022-01-16T00:00:00.csv
+
+# ASGS data (ADCIRC)
+
+# Output ASGS/ADCIRC filenames
+
+The resulting output filenames include additional filename metadata to account for the possibility that 
+for a given TIME, one could have nowcasts and forecasts.
+
+adcirc_stationdata_{instance}_{gridname}_{starttime}.csv
+
+adcirc_stationdata_meta_nowcast_2022-01-16T00:00:00.csv
+adcirc_stationdata_nowcast_2022-01-16T00:00:00.csv
+
+TODO
+
+###### Invocation
+
+Though, all desired source providers are abstracted inside the class fetch_station_data
+access to that data is via the harvesters fetch_data.py and fetch_adcirc_data.py.
+Observation and ASGS data are generally treated somewhat differently
+
+# Observational data (NOAA and CONTRAILS) 
+
+Invoking the observation code is straight forward and uses the harvester: fetch_data.py. The CLI follows:
+optional arguments:
+  -h, --help            show this help message and exit
+  --ndays NDAYS         Number of look-back days from stoptime (or now):
+                        default -2
+  --stoptime STOPTIME   Desired stoptime YYYY-mm-dd HH:MM:SS. Default=now
+  --sources             List currently supported data sources
+  --data_source DATA_SOURCE
+                        choose supported data source (case independant) eg
+                        NOAA or CONTRAILS
+  --data_product DATA_PRODUCT
+                        choose supported data product eg river_water_level:
+                        Only required for Contrails
+
+Data are extracted from the stoptime (or now) with a lookback of ndays. Data are inclusive. The only data_sources
+supported are NOAA and CONTRAILS. The supported data products can vary:
+
+NOAA: water_level
+CONTRAILS: river_water_level and coastal_water_level
+
+Examples follow: The first block imply a stoptime of now(). The second specify it as '2022-01-16 00:00:00'
+
+python fetch_data.py --data_source 'CONTRAILS' --data_product 'coastal_water_level'
+python fetch_data.py --data_source 'CONTRAILS' --data_product 'river_water_level'
+python fetch_data.py --data_source 'NOAA' --data_product 'water_level'
+
+python fetch_data.py --data_source 'CONTRAILS' --data_product 'coastal_water_level' --stoptime '2022-01-16 00:00:00'
+python fetch_data.py --data_source 'CONTRAILS' --data_product 'river_water_level' --stoptime '2022-01-16 00:00:00'
+python fetch_data.py --data_source 'NOAA' --data_product 'water_level' --stoptime '2022-01-16 00:00:00'
+
+Note: ndays could be specified as a positive number (+2_. In effect taking the input stoptime and treating it as a start and looking forward 
+this is not used by us and testing has not been performed. Mostly likely, this will simply result in filenames that can be misleading.
+
+# ASGS data (ADCIRC)
+
+The input URL MUST have the following structure:
+
+http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc
+url.split('/') gives rise to
+where [-6] must include the TIME (%Y%m%d%H)
+      [-5] must be the GRIDNAME (case independent. hsofs, ec95d, etc.)
+      [-2] must be the INSTANCE name (eg nowcasty, forecast, veerrright, etc)
+
+TIME will be used in subsequent output filenameing regardsless of itr being nowcast or forecast.
+Check the associated metadata['NAME'] file for this status ( or compare to the provided timeseries) 
+
+Grabbing ADCIRC data from ASGS is a little different. In this case, a fully specified URL must be passed. No user 
+specified stoptime is available as the times returned are those found in the returned URL data set. The return time series
+can vary depending on the ASGS status of prior runs. Examples of three invocations follows:
+
+The ASGS data are acquired using the code: fetch_adcirc_data.py. The CLI arguments are:
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --sources             List currently supported data sources
+  --data_source DATA_SOURCE
+                        choose supported data source: default = ASGS
+  --url URL             ASGS url to fetcb ADCIRC data
+  --data_product DATA_PRODUCT
+                        choose supported data product: default is water_level
+
+The supported data_product is 'water_level' (and is the default)
+The suported data_source is ASGS.
+
+Currently, if you pass in a hurricane url, the job will exit.
+
+Examples follow:
+
+python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc --data_source 'ASGS'
+python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc --data_source 'ASGS'
+
+# An example of a Hurricane to demonstrate  trapping and exit
+python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2021/ida/11/hsofs/hatteras.renci.org/hsofs-al09-bob/nhc0fcl/fort.61.nc --data_source 'ASGS'
+
+
+###### Invoking older codes. We do not use the below code for our current efforts. But, this can be used to 
+
 # NOAA
 
-# If you want to simple accept the defalt stations lists, an endtime of now() and a starttime of now()-2days
+# If you want to simple accept the defalt stations lists, an endtime of now() and a starttime of now()-3days
 # Then simply invoke as: python noaa_updates.py
 #
 # Can launch a job like:
-#    python noaa_updates.py --stoptime '2021-09-04 00:30:00' --ndays 3 --stations '8410140' '8761724'
+#    python noaa_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '8410140' '8761724'
 #    o8419317  8635750
 #
-python noaa_updates.py --stoptime '2021-09-04 00:30:00' --ndays 3 --stations '8419317' '8635750'
+python noaa_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '8419317' '8635750'
 
 # CONTRAILS
 #
-# If you want to simple accept the defalt stations lists, an endtime of now() and a starttime of now()-2days
+# If you want to simple accept the defalt stations lists, an endtime of now() and a starttime of now()-3days
 # Then simply invoke as: python contrails_updates.py
 #
 #
 # # Can launch a job like:
-#    python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays 3 --stations 'WNRN7' 'GTNN7'
+#    python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations 'WNRN7' 'GTNN7'
 #    o8419317  8635750
 #
 
-python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays 3 --stations '30007' 'GTNN7'
+python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '30007' 'GTNN7'
 
 
 
