@@ -50,13 +50,16 @@ def return_list_of_daily_timeranges(time_tuple)-> list():
         periods: List of daily tuple ranges
 
     Take an arbitrary start and end time (inclusive) in the format of %Y-%m-%d %H:%M:%S. Break up into a list of tuples which 
-    which are at most a day in length AND break alopng day boundaries. [ {day1,day1),(day2,day2)..]
+    which are at most a day in length AND break along day boundaries. [ {day1,day1),(day2,day2)..]
     The first tuple and the last tuple can be partial days. All intervening tuples will be full days.
+    defined as ending on 23h,59m,59s
 
     Assume an HOURLY stepping even though non-zero minute offsets may be in effect.
     
     Return:  
     """
+
+    print('INPUT LIST {}'.format(time_tuple))
     start_time=time_tuple[0]
     end_time=time_tuple[1]
     print(start_time)
@@ -85,7 +88,7 @@ def return_list_of_daily_timeranges(time_tuple)-> list():
     oneSecond=timedelta(seconds=1) # An update interval shift
 
     subrange_start = time_start   
-    while subrange_start < time_end:
+    while subrange_start <= time_end:
         interval = timedelta(hours=init_hour, minutes=init_min, seconds=init_sec)
         subrange_end=min(subrange_start+interval,time_end) # Need a variable interval to prevent a day-span  
         periods.append( (dt.datetime.strftime(subrange_start,dformat),dt.datetime.strftime(subrange_end,dformat)) )
@@ -214,7 +217,8 @@ def main(args):
     else:
         time_stop=dt.datetime.now()
 
-    time_start=time_stop-timedelta(days=args.ndays) # How many days BACK
+    time_start=time_stop+timedelta(days=args.ndays) # How many days BACK
+
     starttime=dt.datetime.strftime(time_start, dformat)
     endtime=dt.datetime.strftime(time_stop, dformat)
     #starttime='2021-12-08 12:00:00'
@@ -246,6 +250,7 @@ def main(args):
             # Build ranges for contrails ( and noaa/nos if you like)
             time_range=[(starttime,endtime)] 
             periods=return_list_of_daily_timeranges(time_range[0]) # Must be broken up into days
+            print('PERIODS {}'.format(periods))
             # Get default station list
             contrails_stations=get_contrails_stations(fname)
             contrails_metadata=meta+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
@@ -261,8 +266,8 @@ def main(args):
 if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('--ndays', action='store', dest='ndays', default=2, type=int,
-                        help='Number of look-back days from stoptime (or now)')
+    parser.add_argument('--ndays', action='store', dest='ndays', default=-2, type=int,
+                        help='Number of look-back days from stoptime (or now): default -2')
     parser.add_argument('--stoptime', action='store', dest='stoptime', default=None, type=str,
                         help='Desired stoptime YYYY-mm-dd HH:MM:SS. Default=now')
     parser.add_argument('--sources', action='store_true',
