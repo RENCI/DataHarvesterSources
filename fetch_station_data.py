@@ -210,15 +210,15 @@ class adcirc_fetch_data(fetch_station_data):
 
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
-                datum='MSL', gridname='None', runtype='None'):
+                datum='MSL', gridname='None', castType='None'):
         self._product=product
         #self._interval=interval 
         self._units='metric'
         self._datum=datum
         periods=periods
-        if runtype.upper()=='None':
-            utilities.log.info('ADCIRC: runtype not set. Will result in poor metadata NAME value')
-        self._runtype=runtype 
+        if castType.upper()=='None':
+            utilities.log.info('ADCIRC: castType not set. Will result in poor metadata NAME value')
+        self._castType=castType 
         if gridname=='None':
             utilities.log.info('ADCIRC: gridname not specified. Will result in poor metadata NAME value') 
         self._gridname=gridname
@@ -237,7 +237,7 @@ class adcirc_fetch_data(fetch_station_data):
         urls exist. If none, then die.
 
         Input:
-            station <str>. A list of NOAA/Contrails station ids
+            station <str>. A list of (eg NOAA/Contrails) station ids
             periods <list>. The list of url-61 values. 
 
         Return: list of tuples (stationid,nodeid). Superfluous stationids are ignored
@@ -299,11 +299,12 @@ class adcirc_fetch_data(fetch_station_data):
         station=station_tuple[0]
         node=station_tuple[1]
         datalist=list()
-        for url in periods:
+        for url in periods: # If a period is SHORT no data may be found esp for Contrails
             try:
                 nc = nc4.Dataset(url)
-            except Exception as e:
+            except OSError as e:
                 utilities.log.error('URL not found should never happen here. Should have been prefiltered')
+                sys.exit(1)
             # we need to test access to the netCDF variables, due to infrequent issues with
             # netCDF files written with v1.8 of HDF5.
             if "zeta" not in nc.variables.keys():
@@ -364,7 +365,7 @@ class adcirc_fetch_data(fetch_station_data):
         meta['LAT'] = lat 
         meta['LON'] = lon 
         # meta['NAME']= nc.agrid # Long form of grid name description # Or possible use nc.version
-        meta['NAME']='_'.join([self._gridname.upper(),self._runtype.upper()]) # These values come from the calling routine and should be usually nowcast, forecast
+        meta['NAME']='_'.join([self._gridname.upper(),self._castType.upper()]) # These values come from the calling routine and should be usually nowcast, forecast
         #meta['VERSION'] = nc.version
         meta['UNITS'] ='meters'
         meta['TZ'] = GLOBAL_TIMEZONE # Can look in nc.comments
@@ -551,8 +552,8 @@ class contrails_fetch_data(fetch_station_data):
     CLASSDICT = {
         'Rain Increment':10,
         'Rain Accumulation':11,
-        'Stage':20,
-        'Water Elevation':94,
+        'Stage':20,            # River guages
+        'Water Elevation':94,  # Coastal guages  - not documented in contrails doc as of today
         'Flow Volume':25,
         'Air Temperature':30,
         'Fuel Temperature':38,
@@ -632,17 +633,17 @@ class contrails_fetch_data(fetch_station_data):
             url = self.build_url_for_contrails_station(self._domain,self._systemkey,indict)
             try:
                 response = requests.get(url)
+                dict_data = xmltodict.parse(response.content)
+                data = dict_data['onerain']['response']['general']
+                dx = pd.DataFrame(data['row']) # Will  be <= 5000
+                dx = dx[['data_time','data_value']]
+                utilities.log.info('Contrails. Converting to meters')
+                dx.columns = ['TIME',station]
+                dx.set_index('TIME',inplace=True)
+                dx.index = pd.to_datetime(dx.index)
+                datalist.append(dx)
             except Exception as e:
-                utilities.log.error('Contrails response data error: {}'.format(e))
-            dict_data = xmltodict.parse(response.content)
-            data = dict_data['onerain']['response']['general']
-            dx = pd.DataFrame(data['row']) # Will  be <= 5000
-            dx = dx[['data_time','data_value']]
-            utilities.log.info('Contrails. Converting to meters')
-            dx.columns = ['TIME',station]
-            dx.set_index('TIME',inplace=True)
-            dx.index = pd.to_datetime(dx.index)
-            datalist.append(dx)
+                utilities.log.warn('Contrails response data error: Perhaps empty data contribution: {}'.format(e))
         try:
             # Manually convert all values to meters
             df_data = pd.concat(datalist)
