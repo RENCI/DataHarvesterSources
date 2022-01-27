@@ -101,7 +101,7 @@ def process_adcirc_stations(url, adcirc_stations, gridname, instance, metadata, 
             utilities.log.error('ADCIRC data product can only be: water_level')
             sys.exit(1)
 
-        adcirc = adcirc_fetch_data(adcirc_stations, url, data_product, gridname=gridname, runtype=instance.rstrip())
+        adcirc = adcirc_fetch_data(adcirc_stations, url, data_product, gridname=gridname, castType=instance.rstrip())
         df_adcirc_data = adcirc.aggregate_station_data()
         df_adcirc_meta = adcirc.aggregate_station_metadata()
         df_adcirc_data_out,df_adcirc_meta = format_data_frames(df_adcirc_data,df_adcirc_meta)
@@ -222,11 +222,11 @@ if __name__ == '__main__':
     parser.add_argument('--sources', action='store_true',
                         help='List currently supported data sources')
     parser.add_argument('--data_source', action='store', dest='data_source', default='ASGS', type=str,
-                        help='choose supported data source eg ASGS')
+                        help='choose supported data source: default = ASGS')
     parser.add_argument('--url', action='store', dest='url', default=None, type=str,
                         help='ASGS url to fetcb ADCIRC data')
     parser.add_argument('--data_product', action='store', dest='data_product', default='water_level', type=str,
-                        help='choose supported data product eg water_level')
+                        help='choose supported data product: default is water_level')
 
     args = parser.parse_args()
     sys.exit(main(args))

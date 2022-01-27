@@ -208,6 +208,28 @@ class adcirc_fetch_data(fetch_station_data):
                 utilities.log.info('URL not found: Remove url {}'.format(url))
         return new_periods
 
+    def typeADCIRCCast(self, url, df):
+        """
+        Compute the URL starttime value to the time range in df. Ascertain if this
+        job is a forecast or a nowcast type.
+        This is tricky since, eg, an ADCIRC file _might_ include times from a prior (failed) ASGS run. 
+        But it will never have pre-forecasted results. So this is how we will check. Simply compare
+        the last timeseries value to the url starttime. if timeseries > starttime than it is a forecast
+
+        url TIME must reside in url.split('/')[-6]
+        Assume the times series are ordered.
+
+        Return:
+              Either NOWCAST or FORECAST
+        """
+        timeseries = pd.to_datetime(df.index)
+        starttime=url.split('/')[-6]
+        urltime = dt.datetime.strptime(starttime,'%Y%m%d%H')
+        if timeseries[-1] > urltime:
+            return 'FORECAST'
+        else:
+            return 'NOWCAST'
+
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
                 datum='MSL', gridname='None', castType='None'):
@@ -299,6 +321,7 @@ class adcirc_fetch_data(fetch_station_data):
         station=station_tuple[0]
         node=station_tuple[1]
         datalist=list()
+        typeCast_status=list() # Check each period to see if this was a nowcast or forecast type fetch. If mixed then abort
         for url in periods: # If a period is SHORT no data may be found esp for Contrails
             try:
                 nc = nc4.Dataset(url)
@@ -320,22 +343,30 @@ class adcirc_fetch_data(fetch_station_data):
                     utilities.log.error('Error: This is usually caused by accessing non-hsofs data but forgetting to specify the proper --grid {}'.format(e))
                     #sys.exit()
                 np.place(data, data < -1000, np.nan)
-                df_data = pd.DataFrame(data, columns=[str(node)], index=t)
-                df_data.columns=[station]
-                df_data.index.name='TIME'
-                datalist.append(df_data)
+                dx = pd.DataFrame(data, columns=[str(node)], index=t)
+                dx.columns=[station]
+                dx.index.name='TIME'
+                typeCast_status.append(self.typeADCIRCCast(url, dx))
+                datalist.append(dx)
         try:
             df_data = pd.concat(datalist)
         except Exception as e:
             print('ADCIRC concat error: {}'.format(e))
+        # Check if ALL entries in typeCast_status are the same. If not fail hard.
+        if len(set(typeCast_status)) != 1:
+            utilities.log.error('Some mix up with typeCast_status {}'.format(typeCast_status))
+            sys.exit(1)
+        self._typeCast = list(set(typeCast_status))[0] 
+        utilities.log.info('ADCIRC type determined to be {}'.format(self._typeCast))
         return df_data
 
 ##
 ## The nodelat/nodelon objects are masked arrays. For a single node (as used here)
 ## the ma.getdata() returns an ndarray of shape=() but with the a single value.
 ## Imposing a float() onto that value converts it to a real float
-## No idea why this happens nor if in the future problerms will occur
 ##
+## Try to determine if this was a nowcast or a forecast type dataset
+
     def fetch_single_metadata(self, station_tuple) -> pd.DataFrame:
         """
         Input:
