@@ -189,7 +189,6 @@ def main(args):
     urltime = dt.datetime.strptime(urltimeStr,'%Y%m%d%H')
 
     instance = stripInstanceFromURL(url) 
-
     gridname = grabGridnameFromURL(url)
 
     ##
@@ -209,7 +208,7 @@ def main(args):
 
         # Use default station list
         adcirc_stations=get_adcirc_stations()
-        adcirc_metadata='_'+instance+'_'+runtime.replace(' ','T')
+        adcirc_metadata='_'+instance+'_'+gridname.upper()+'_'+runtime.replace(' ','T')
         dataf, metaf = process_adcirc_stations(urls, adcirc_stations, gridname, instance, adcirc_metadata, data_product)
 
     utilities.log.info('Finished with data source {}'.format(data_source))
