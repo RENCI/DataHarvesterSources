@@ -276,7 +276,7 @@ def process_contrails_stations(periods, contrails_stations, product_type, metada
 def process_nowcast_stations(urls, adcirc_stations, metadata, gridname):
     # Fetch the nowcast data
     try:
-        adcirc = adcirc_fetch_data(adcirc_stations, urls, 'water_level', gridname=gridname, runtype='nowcast')
+        adcirc = adcirc_fetch_data(adcirc_stations, urls, 'water_level', gridname=gridname, castType='nowcast')
         df_adcirc_data = adcirc.aggregate_station_data()
         df_adcirc_meta = adcirc.aggregate_station_metadata()
         df_adcirc_data_out,df_adcirc_meta = format_data_frames(df_adcirc_data,df_adcirc_meta)
@@ -290,7 +290,7 @@ def process_nowcast_stations(urls, adcirc_stations, metadata, gridname):
 def process_forecast_stations(urls_fc, adcirc_stations, metadata, gridname):
     # Fetch the forecast data
     try:
-        adcirc_fc = adcirc_fetch_data(adcirc_stations, urls_fc, 'water_level', gridname=gridname, runtype='forecast')
+        adcirc_fc = adcirc_fetch_data(adcirc_stations, urls_fc, 'water_level', gridname=gridname, castType='forecast')
         df_adcirc_fc_data = adcirc_fc.aggregate_station_data()
         df_adcirc_fc_meta = adcirc_fc.aggregate_station_metadata()
         df_adcirc_fc_data_out,df_adcirc_fc_meta = format_data_frames(df_adcirc_fc_data,df_adcirc_fc_meta)
@@ -319,7 +319,7 @@ def main(args):
     else:
         time_stop=dt.datetime.now()
 
-    time_start=time_stop-timedelta(days=args.ndays) # How many days BACK
+    time_start=time_stop+timedelta(days=args.ndays) # How many days BACK
     starttime=dt.datetime.strftime(time_start, dformat)
     endtime=dt.datetime.strftime(time_stop, dformat)
     #starttime='2021-12-08 12:00:00'
@@ -396,7 +396,7 @@ def main(args):
 if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('--ndays', action='store', dest='ndays', default=2, type=int,
+    parser.add_argument('--ndays', action='store', dest='ndays', default=-2, type=int,
                         help='Number of look-back days from stoptime (or now)')
     parser.add_argument('--stoptime', action='store', dest='stoptime', default=None, type=str,
                         help='Desired stoptime YYYY-mm-dd HH:MM:SS. Default=now')
