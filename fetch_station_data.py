@@ -541,14 +541,14 @@ class noaanos_fetch_data(fetch_station_data):
             location = coops.Station(station)
         except Exception as e:
             utilities.log.error('NOAA/NOS meta error: {}'.format(e))
-        meta['LAT'] = location.metadata['lat']
-        meta['LON'] = location.metadata['lng']
-        meta['NAME'] =  location.metadata['name']
+        meta['LAT'] = location.metadata['lat'] if location.metadata['lat']!='' else np.nan
+        meta['LON'] = location.metadata['lng'] if location.metadata['lng']!='' else np.nan
+        meta['NAME'] =  location.metadata['name'] if location.metadata['name']!='' else np.nan
         meta['UNITS'] = UNITS # Manual override bcs -> location.sensors['units'] # This can DIFFER from the actual data. For data you can specify a transform to metric.
         #meta['ELEVATION'] = location['elevation']
         meta['TZ'] = GLOBAL_TIMEZONE
         meta['OWNER'] = 'NOAA/NOS'
-        meta['STATE'] = location.metadata['state']
+        meta['STATE'] = location.metadata['state'] if location.metadata['state']!='' else np.nan
         meta['COUNTY'] = np.nan # None
         #
         df_meta=pd.DataFrame.from_dict(meta, orient='index')
@@ -742,14 +742,15 @@ class contrails_fetch_data(fetch_station_data):
         dict_data = xmltodict.parse(response.content)
         data2 = dict_data['onerain']['response']['general']['row']
         # Gets here but then fails hard and returns for GTNN7
-        meta['LAT'] = data2['latitude_dec']
-        meta['LON'] = data2['longitude_dec']
-        meta['NAME'] = data['location']
+        meta['LAT'] = data2['latitude_dec'] if data2['latitude_dec'] !='' else np.nan
+        meta['LON'] = data2['longitude_dec'] if data2['longitude_dec'] !='' else np.nan
+        meta['NAME'] = data['location'] if data2['location'] !='' else np.nan
         meta['UNITS'] = UNITS # Manual override bcs -> data['units'].replace('.','') # I have seen . in some labels
         meta['TZ'] = GLOBAL_TIMEZONE # data['utc_offset']
         ###meta['ELEVATION'] = data['elevation']
         meta['OWNER'] = self._owner # data2 always returns the value=DEPRECATED data2['owner']
         meta['STATE'] = np.nan # None # data2['state']  # DO these work ?
+        meta['COUNTY'] = np.nan
         #
         df_meta=pd.DataFrame.from_dict(meta, orient='index')
         df_meta.columns = [str(station)] 
