@@ -19,9 +19,9 @@ printf "Current date in dd/mm/yyyy format %s\n" "$day-$month-$year 00:00:00"
 
 stoptime="$year-$month-$day 00:00:00"
 
-python fetch_data.py --data_source 'CONTRAILS' --data_product 'coastal_water_level' --stoptime "$stoptime"
-python fetch_data.py --data_source 'CONTRAILS' --data_product 'river_water_level' --stoptime "$stoptime"
-python fetch_data.py --data_source 'NOAA' --data_product 'water_level' --stoptime "$stoptime"
+/home/jtilson/anaconda3/bin/python fetch_data.py --data_source 'CONTRAILS' --data_product 'coastal_water_level' --stoptime "$stoptime"
+/home/jtilson/anaconda3/bin/python fetch_data.py --data_source 'CONTRAILS' --data_product 'river_water_level' --stoptime "$stoptime"
+/home/jtilson/anaconda3/bin/python fetch_data.py --data_source 'NOAA' --data_product 'water_level' --stoptime "$stoptime"
 
 echo "Finished"
 
