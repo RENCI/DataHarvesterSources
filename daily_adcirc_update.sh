@@ -6,8 +6,8 @@
 # We do not included $min:$sec values here
 
 export PYTHONPATH=/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data
-export RUNTIMEDIR=./DAILIES-TEST
-#export RUNTIMEDIR=/projects/ees/TDS/DataHarvesting/DAILY_HARVESTING
+#export RUNTIMEDIR=./DAILIES
+export RUNTIMEDIR=/projects/ees/TDS/DataHarvesting/DAILY_HARVESTING
 
 # Prepare invocation
 cd /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data
