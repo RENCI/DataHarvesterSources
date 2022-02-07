@@ -224,11 +224,15 @@ class adcirc_fetch_data(fetch_station_data):
         """
         timeseries = pd.to_datetime(df.index)
         starttime=url.split('/')[-6]
-        urltime = dt.datetime.strptime(starttime,'%Y%m%d%H')
-        if timeseries[-1] > urltime:
+        try:
+            urltime = dt.datetime.strptime(starttime,'%Y%m%d%H')
+            if timeseries[-1] > urltime:
+                return 'FORECAST'
+            else:
+                return 'NOWCAST'
+        except ValueError:
+            utilities.log.error('Found a Hurricane Advisory value: Assumes forecast{}'.format(starttime))
             return 'FORECAST'
-        else:
-            return 'NOWCAST'
 
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
