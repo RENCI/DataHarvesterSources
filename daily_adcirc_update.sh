@@ -30,7 +30,7 @@ if [ "$hour" -eq "00" ] || [ "$hour" -eq "06" ] || [ "$hour" -eq "12" ] || [ "$h
         echo "Requested ASGS data"
     else
     # Cron should have taken care of this but here we are...
-        echo "A non-6hourly time was specified. Can't do anything with this but exit"
+        echo "A non-6hourly time was specified. Cant do anything with this but exit"
 fi
 echo "Finished"
 

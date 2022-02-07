@@ -87,32 +87,6 @@ class Utilities:
         self.config = config
         return config
 
-    def print_dict(self, t, s):
-        if not isinstance(t, dict) and not isinstance(t, list):
-            # pass
-            if not isinstance(t, float):
-                print("\t" * s + str(t))
-        else:
-            for key in t:
-                if not isinstance(t, float) and not isinstance(t, list) \
-                        and not isinstance(t, int) and not isinstance(t, unicode):
-                    print("\t" * s + str(key))
-                if not isinstance(t, list):
-                    self.print_dict(t[key], s + 1)
-
-    def serializeMe(self, o):
-        if isinstance(o, dt.datetime):
-            return o.__str__()
-
-    def readConfigYml(self, yamlfilename):
-        if not os.path.exists(yamlfilename):
-            raise IOError("Failed to find config file %s" % yamlfilename)
-        # config_file = EnvYAML(yamlfilename)
-        # print(config_file['ADDAHOME'])
-        with open(yamlfilename, 'r') as stream:
-            config_file = yaml.safe_load(stream)
-        return config_file
-
 #############################################################
 # IO uses the base YAML config to do its work
 
@@ -199,52 +173,6 @@ class Utilities:
         except IOError:
             raise IOerror("Failed to write file %s" % (newfilename))
         return newfilename
-
-    def writeDictToJson(self, dictdata, rootdir='.',subdir='errorfile',fileroot='filename',iometadata='Nometadata'):
-        """
-        Write out current self.merged_dict as a Json. Must not use a datetime  as keys
-        """
-        newfilename=None
-        try:
-            mdir = rootdir
-            newfilename = self.getSubdirectoryFileName(mdir, subdir, fileroot+iometadata+'.json')
-            with open(newfilename, 'w') as fp:
-                json.dump(dictdata, fp)
-            utilities.log.info('Wrote JSON file {}'.format(newfilename))
-        except IOError:
-            raise IOerror("Failed to write file %s" % (newfilename))
-        return newfilename
-
-    def read_json_file(self, filepath):
-        # Read data from JSON file specified by full path
-        data = {}
-        try:
-            with open(filepath, 'r') as fp:
-                data = json.load(fp)
-        except FileNotFoundError:
-            raise FileNotFoundError("Failed to read file %s" % (filepath))               
-        return data
-
-    def write_json_file(self, data, filepath):
-        # write data from JSON file specified by full path
-        try:
-            with open(filepath, 'w') as fp:
-                json.dump(data, fp)
-        except IOError:
-            raise IOerror("Failed to write JSON file %s" % (filepath))
-
-    def print_dict(self, t, s):
-        if not isinstance(t, dict) and not isinstance(t, list):
-            # pass
-            if not isinstance(t, float):
-                print("\t" * s + str(t))
-        else:
-            for key in t:
-                if not isinstance(t, float) and not isinstance(t, list) \
-                        and not isinstance(t, int) and not isinstance(t, unicode):
-                    print("\t" * s + str(key))
-                if not isinstance(t, list):
-                    self.print_dict(t[key], s + 1)
 
 utilities = Utilities()
 

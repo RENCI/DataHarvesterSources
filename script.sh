@@ -7,7 +7,7 @@
 #SBATCH --mem-per-cpu 256000
 
 export PYTHONPATH=/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data
-export RUNTIMEDIR=./NEWTEST5
+export RUNTIMEDIR=./NEWTEST6
 
 # Run 10 days worth of runs with a 2 day look back
 python update_newtest_inputs_2.py --gridname 'hsofs' --stoptime '2022-01-09 00:00:00'

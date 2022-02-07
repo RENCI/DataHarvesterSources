@@ -181,12 +181,16 @@ def main(args):
         utilities.log.info('Chosen data source {}'.format(data_source))
 
     # If this is a hurricane then abort for now
-    if checkIfHurricane(url):
-        utilities.log.error('URL is a Hurricane. We do not process those yet')
-        sys.exit(1)
-
-    urltimeStr = stripTimeFromURL(url)
-    urltime = dt.datetime.strptime(urltimeStr,'%Y%m%d%H')
+    if not checkIfHurricane(url):
+        utilities.log.error('URL is not a Hurricane advisory')
+        #sys.exit(1)
+        urltimeStr = stripTimeFromURL(url)
+        urltime = dt.datetime.strptime(urltimeStr,'%Y%m%d%H')
+        runtime=dt.datetime.strftime(urltime, dformat)
+    else:
+        utilities.log.error('URL is a Hurricane')
+        urladvisory = stripTimeFromURL(url)
+        runtime=urladvisory
 
     instance = stripInstanceFromURL(url) 
     gridname = grabGridnameFromURL(url)
@@ -195,9 +199,8 @@ def main(args):
     ## Start the processing
     ##
 
-    runtime=dt.datetime.strftime(urltime, dformat)
     #starttime='2021-12-08 12:00:00'
-    utilities.log.info('Selected run time range is {}'.format(runtime))
+    utilities.log.info('Selected run time/Advisory range is {}'.format(runtime))
 
     # metadata are used to augment filename
     #ASGS
