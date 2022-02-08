@@ -347,11 +347,16 @@ class adcirc_fetch_data(fetch_station_data):
                     utilities.log.error('Error: This is usually caused by accessing non-hsofs data but forgetting to specify the proper --grid {}'.format(e))
                     #sys.exit()
                 np.place(data, data < -1000, np.nan)
+                print('S2')
                 dx = pd.DataFrame(data, columns=[str(node)], index=t)
                 dx.columns=[station]
                 dx.index.name='TIME'
+                print('S1')
                 typeCast_status.append(self.typeADCIRCCast(url, dx))
+                print('S3')
                 datalist.append(dx)
+                print(dx)
+        print('S4')
         try:
             df_data = pd.concat(datalist)
         except Exception as e:
