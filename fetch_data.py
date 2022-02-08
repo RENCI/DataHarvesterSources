@@ -96,7 +96,7 @@ def return_list_of_daily_timeranges(time_tuple)-> list():
         init_hour, init_min, init_sec = 23,59,59
     return periods
 
-def get_noaa_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/noaa_stations.txt'):
+def get_noaa_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/config/noaa_stations.txt'):
     """
     Simply read a list of stations from a txt file.
     """
@@ -109,7 +109,7 @@ def get_noaa_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HA
     noaa_stations=[word.rstrip() for word in noaa_stations[1:]] # Strip off comment line
     return noaa_stations
 
-def get_contrails_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations.txt'):
+def get_contrails_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/config/contrails_stations.txt'):
     """
     A convenience method to fetch river guage lists. 
     Contrails data
