@@ -4,3 +4,4 @@ xarray
 pyyaml
 netCDF4
 xmltodict
+siphon
