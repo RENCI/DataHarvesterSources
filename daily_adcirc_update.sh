@@ -5,12 +5,12 @@
 # Run the cron at 6 hours + 15 mins to help ensure the data actually got to the ASGS site
 # We do not included $min:$sec values here
 
-export PYTHONPATH=/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data
+export PYTHONPATH=/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources
 #export RUNTIMEDIR=./DAILIES
 export RUNTIMEDIR=/projects/ees/TDS/DataHarvesting/DAILY_HARVESTING
 
 # Prepare invocation
-cd /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data
+cd /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources
 
 # Dig out the DAY, MONTH, and YEAR values. Always set hour:min:sec to 00:00:00
 

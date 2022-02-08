@@ -1,12 +1,12 @@
 #
 # Setup the basic env values relative to /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data
 
-export PYTHONPATH=/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data
+export PYTHONPATH=/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources
 #export RUNTIMEDIR=./DAILIES-TEST
 export RUNTIMEDIR=/projects/ees/TDS/DataHarvesting/DAILY_HARVESTING
 
 # Prepare invocation
-cd /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data
+cd /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources
 
 # Dig out the DAY, MONTH, and YEAR values. Always set hour:min:sec to 00:00:00
 
