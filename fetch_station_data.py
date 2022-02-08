@@ -222,7 +222,7 @@ class adcirc_fetch_data(fetch_station_data):
         Return:
               Either NOWCAST or FORECAST
         """
-        timeseries = pd.to_datetime(df.index)
+        timeseries = pd.to_datetime(df.index.map(str)) # Account for ctime/calender changes in pandas. Thx !.
         starttime=url.split('/')[-6]
         try:
             urltime = dt.datetime.strptime(starttime,'%Y%m%d%H')
