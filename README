@@ -55,12 +55,19 @@ where {group} only applies to contrails. Examples include:
 The resulting output filenames include additional filename metadata to account for the possibility that 
 for a given TIME, one could have nowcasts and forecasts.
 
+# The filenames ands associated metadata need to report if the data are a NOWCAT oir a FORECAST indepedend of the url INSTANCE name.
+# So the fetcher code now makes that determination by looking at the input STOPTIME in the url and Checking the last time entry in the fetched data set
+# If the STOPTIME is <  last time entryh then it is assumed to be a FORECAST else a NOWCAST. No mixed scenarios are assumed
+
+# The filename nomclature is as follows. Instance is generally arbitrary inputy but is usually nowcast,forecast. The starttime
+# is read form the url. To know with certainty if these are nowcasts or forecasts requires looking into the associated metadata file 
+
 adcirc_stationdata_{instance}_{gridname}_{starttime}.csv
 
-adcirc_stationdata_meta_nowcast_2022-01-16T00:00:00.csv
-adcirc_stationdata_nowcast_2022-01-16T00:00:00.csv
+#Examples
 
-TODO
+adcirc_stationdata_namforecast_HSOFS_2022-01-16T00:00:00.csv
+adcirc_stationdata_meta_namforecast_HSOFS_2022-01-16T00:00:00.csv
 
 ###### Invocation
 
@@ -107,7 +114,7 @@ this is not used by us and testing has not been performed. Mostly likely, this w
 
 The input URL MUST have the following structure:
 
-http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc
+http://tds.site.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/machine.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc
 url.split('/') gives rise to
 where [-6] must include the TIME (%Y%m%d%H)
       [-5] must be the GRIDNAME (case independent. hsofs, ec95d, etc.)
@@ -138,12 +145,23 @@ Currently, if you pass in a hurricane url, the job will exit.
 
 Examples follow:
 
-python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc --data_source 'ASGS'
-python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc --data_source 'ASGS'
+python fetch_adcirc_data.py --url http://tds.site.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/machine.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc --data_source 'ASGS'
+python fetch_adcirc_data.py --url http://tds.site.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/machine.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc --data_source 'ASGS'
 
-# An example of a Hurricane to demonstrate  trapping and exit
-python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2021/ida/11/hsofs/hatteras.renci.org/hsofs-al09-bob/nhc0fcl/fort.61.nc --data_source 'ASGS'
+# An example of a Hurricane 
+python fetch_adcirc_data.py --url http://tds.site.org:8080/thredds/dodsC/2021/ida/11/hsofs/machine.renci.org/hsofs-al09-bob/nhc0fcl/fort.61.nc --data_source 'ASGS'
 
+# Note: Supplying a hurricane url with an advisory instead of a starttime is permitted. However, the resulting csv files will be annotated using advisory values and not times.
+# Also, since no STARTTIME is provided, all ADVISORY based urls are ASSUMED to be FORECASTs.
+#
+# An example of a hurricane invocation: 
+
+python fetch_adcirc_data.py --url "http://tds.site.org:8080/thredds/dodsC/2021/ida/11/hsofs/machine.renci.org/hsofs-al09-bob/nhcOfcl/fort.61.nc" --data_source 'ASGS'
+
+# With output files:
+#
+adcirc_stationdata_nhcOfcl_HSOFS_11.csv
+adcirc_stationdata_meta_nhcOfcl_HSOFS_11.csv
 
 ###### Invoking older codes. We do not use the below code for our current efforts. But, this can be used to 
 
@@ -172,4 +190,8 @@ python noaa_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '8
 python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '30007' 'GTNN7'
 
 
+###### CRON tabs. Some basic daily/6-hourly runs can be performed using the below entries. 
+
+0 0 * * * /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/daily_observation_update.sh
+5 */6 * * * /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/daily_adcirc_update.sh
 

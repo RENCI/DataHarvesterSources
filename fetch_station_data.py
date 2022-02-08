@@ -231,7 +231,7 @@ class adcirc_fetch_data(fetch_station_data):
             else:
                 return 'NOWCAST'
         except ValueError:
-            utilities.log.error('Found a Hurricane Advisory value: Assumes forecast{}'.format(starttime))
+            utilities.log.error('Found a Hurricane Advisory value: Assumes forecast {}'.format(starttime))
             return 'FORECAST'
 
 #TODO change name periods to urls
