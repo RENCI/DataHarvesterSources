@@ -24,7 +24,7 @@ rootdir=utilities.fetchBasedir(main_config['DEFAULT']['RDIR'], basedirExtra='')
 # Currently supported sources
 SOURCES = ['ASGS']
 
-def get_adcirc_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/config/adcirc_stations.txt'):
+def get_adcirc_stations(fname='./config/adcirc_stations.txt'):
     """
     Simply read a list of stations from a txt file.
     Generally, we simply com,bine NOAA and COntrails into a single list. It is okay to include stations not likely to exist since
