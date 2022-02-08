@@ -16,7 +16,7 @@ LABEL maintainer="jtilson@renci.org"
 RUN apt-get update
 
 # Start off getting Python 3.7.3
-RUN conda install  -y python=3.7.3
+RUN conda install  -y python=3.8
 
 # update conda and set the download channel
 RUN conda update conda && \
