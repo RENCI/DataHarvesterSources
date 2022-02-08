@@ -241,10 +241,10 @@ def main(args):
         template = "An exception of type {0} occurred."
         excludedStations=list()
         if data_product=='river_water_level':
-            fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_rivers.txt'
+            fname='./config/contrails_stations_rivers.txt'
             meta='_RIVERS'
         else:
-            fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_coastal.txt'
+            fname='./config/contrails_stations_coastal.txt'
             meta='_COASTAL'
         try:
             # Build ranges for contrails ( and noaa/nos if you like)
@@ -256,7 +256,7 @@ def main(args):
             contrails_metadata=meta+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
             dataf, metaf = process_contrails_stations(periods, contrails_stations, contrails_metadata, data_product)
         except Exception as ex:
-            utilities.log.warn('CONTRAILS error'.format(template.format(type(ex).__name__, ex.args)))
+            utilities.log.error('CONTRAILS error {}, {}'.format(template.format(type(ex).__name__, ex.args)))
             sys.exit(1)
 
     utilities.log.info('Finished with data source {}'.format(data_source))
