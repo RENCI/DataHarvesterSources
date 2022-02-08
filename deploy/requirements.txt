@@ -1,5 +1,6 @@
 numpy
 pandas
 xarray
+pyyaml
 netCDF4
 xmltodict
