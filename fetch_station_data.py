@@ -155,7 +155,6 @@ class fetch_station_data(object):
             try:
                 dx = self.fetch_single_metadata(station)
                 aggregateMetaData.append(dx)
-                #print(dx)
                 #tm.sleep(2) # sleep 2 secs
                 utilities.log.info('Iterate: Kept station is {}'.format(station))
             except Exception as ex:
@@ -222,12 +221,7 @@ class adcirc_fetch_data(fetch_station_data):
         Return:
               Either NOWCAST or FORECAST
         """
-        print(df_index)
-        print('strigafied')
-        print(df.index.map(str)
-        timeseries = pd.to_datetime(df.index.map(str)) # Account for ctime/calender changes in pandas. Thx !.
-        print('timeseries')
-        print(timeseries)
+        timeseries = pd.to_datetime(df.index.astype(str)) # Account for ctime/calender changes in pandas. Thx !.
         starttime=url.split('/')[-6]
         try:
             urltime = dt.datetime.strptime(starttime,'%Y%m%d%H')
@@ -238,6 +232,10 @@ class adcirc_fetch_data(fetch_station_data):
         except ValueError:
             utilities.log.error('Found a Hurricane Advisory value: Assumes forecast {}'.format(starttime))
             return 'FORECAST'
+        except IndexError as e:
+            utilities.log.error('Error: {}'.format(e))
+            sys.exit(1)
+
 
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
@@ -288,7 +286,7 @@ class adcirc_fetch_data(fetch_station_data):
                     snn.append(str(ts.split(' ')[0])) # Strips off actual name leaving only the leading id
                 # Get intersection of input station ids and available ids
                 snn_pruned=[str(x) for x in stations if x in snn]
-                idx = list() # Bukld a list of tuples (stationid,nodeid)
+                idx = list() # Build a list of tuples (stationid,nodeid)
                 for ss in stations: # Loop over stations to maintain order
                     s = ss # Supposed to pull out the first word
                     # Cnvert to a try clause
@@ -352,16 +350,13 @@ class adcirc_fetch_data(fetch_station_data):
                     utilities.log.error('Error: This is usually caused by accessing non-hsofs data but forgetting to specify the proper --grid {}'.format(e))
                     #sys.exit()
                 np.place(data, data < -1000, np.nan)
-                print('S2')
                 dx = pd.DataFrame(data, columns=[str(node)], index=t)
                 dx.columns=[station]
                 dx.index.name='TIME'
-                print('S1')
                 typeCast_status.append(self.typeADCIRCCast(url, dx))
-                print('S3')
+                # Now some fudging to account for Pandas timestamp capability changes
+                dx.index = pd.to_datetime(dx.index.astype(str)) # New pandas can only do this to strings now
                 datalist.append(dx)
-                print(dx)
-        print('S4')
         try:
             df_data = pd.concat(datalist)
         except Exception as e:
