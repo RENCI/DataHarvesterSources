@@ -1,4 +1,4 @@
-numpy==1.16.2
-pandas==1.1.3
-netCDF4==1.5.7
-xmltodict==0.12.0
+numpy
+pandas
+netCDF4
+xmltodict
