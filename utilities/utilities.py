@@ -145,20 +145,6 @@ class Utilities:
             #    print("Successfully created the directory %s " % fulldir)
         return os.path.join(fulldir, fname)
 
-    def writePickle(self, df, rootdir='.',subdir='obspkl',fileroot='filename',iometadata='Nometadata'):
-        """ 
-        Returns full filename for capture
-        """
-        newfilename=None
-        try:
-            mdir = rootdir
-            newfilename = self.getSubdirectoryFileName(mdir, subdir, fileroot+iometadata+'.pkl')
-            df.to_pickle(newfilename)
-            print('Wrote pickle file {}'.format(newfilename))
-        except IOError:
-            raise IOerror("Failed to write PKL file %s" % (newfilename))
-        return newfilename
-
     def writeCsv(self, df, rootdir='.',subdir='obspkl',fileroot='filename',iometadata='Nometadata'):
         """
         Write out current self.excludeList to disk as a csv
