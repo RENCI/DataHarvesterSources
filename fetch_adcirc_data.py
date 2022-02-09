@@ -78,6 +78,22 @@ def checkIfHurricane(url):
     state_hurricane = checkAdvisory(words[-6])
     return state_hurricane
 
+def convertInputURLToNowcast(url):
+    """
+    Though one could call this method using a nowcast url, occasionally we want to be able to
+    only pass a forecast type url and, from that, figure out what the corresponding nowcast url might be.
+    This assume a proper ASGS formatted url and makes no attempts to validate the usefullness of
+    the constructed url. Either it exists or this methiod exits(1)
+
+    To use this feature:
+    We mandate that the url is used to access ASGS data. The "instance" information will be in position .split('/')[-2]
+    """
+    urlwords=url.split('/')
+    urlwords[-2]='nowcast'
+    newurl='/'.join(urlwords)
+    utilities.log.info('Modified input URL toi be a nowcast type')
+    return newurl
+
 ##
 ## End functions
 ##
@@ -126,7 +142,7 @@ def stripTimeFromURL(url):
 
 def stripInstanceFromURL(url):
     """
-    We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "time" information will be in position .split('/')[-2]
+    We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "instance" information will be in position .split('/')[-2]
     eg. 'http://tds.renci.org:8080/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
     
     Return:
@@ -138,7 +154,7 @@ def stripInstanceFromURL(url):
 
 def grabGridnameFromURL(url):
     """
-    We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "time" information will be in position .split('/')[-2]
+    We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "grid" information will be in position .split('/')[-2]
     eg. 'http://tds.renci.org:8080/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
     
     Return:
@@ -152,7 +168,7 @@ def main(args):
     """
     We require the provided URL are using the typical ASGS nomenclature and that the timestamp is in ('/') position -6
     Moreover, This time stamp behaves a little different if fetching a nowcast versus a forecast. For now, we will
-    annotate final .csv files with _TIME1_TIME2_ corresponding to the reported total range.
+    annotate final .csv files with _TIME_ corresponding to the reported url starttime.
     """
 
     if args.sources:
@@ -173,6 +189,10 @@ def main(args):
         utilities.log.error('No URL was specified: Abort')
         sys.exit(1)
 
+    if args.convertToNowcast:
+        utilities.log.info('Requested conversion to Nowcast')
+        url = convertInputURLToNowcast(url)
+
     data_product = args.data_product
     if data_product != 'water_level':
         utilities.log.error('ADCIRC: Only available data product is water_level: {}'.format(data_product))
@@ -180,7 +200,7 @@ def main(args):
     else:
         utilities.log.info('Chosen data source {}'.format(data_source))
 
-    # If this is a hurricane then abort for now
+    # Check if this is a Hurricane
     if not checkIfHurricane(url):
         utilities.log.error('URL is not a Hurricane advisory')
         #sys.exit(1)
@@ -229,6 +249,7 @@ if __name__ == '__main__':
                         help='ASGS url to fetcb ADCIRC data')
     parser.add_argument('--data_product', action='store', dest='data_product', default='water_level', type=str,
                         help='choose supported data product: default is water_level')
-
+    parser.add_argument('--convertToNowcast', action='store_true',
+                        help='Attempts to force input URL into a nowcast url assuming normal ASGS conventions')
     args = parser.parse_args()
     sys.exit(main(args))

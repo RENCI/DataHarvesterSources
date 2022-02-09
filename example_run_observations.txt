@@ -1,21 +1,20 @@
 # OBS data
-
 python fetch_data.py --data_source 'CONTRAILS' --data_product 'coastal_water_level'
 python fetch_data.py --data_source 'CONTRAILS' --data_product 'river_water_level'
 python fetch_data.py --data_source 'NOAA' --data_product 'water_level'
 
 # ADCIRC data
-
 python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc --data_source 'ASGS'
 python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc --data_source 'ASGS'
-# An example of a Hurricane to demonstrate  trapping it
+# An example of a Hurricane 
 python fetch_adcirc_data.py --url "http://tds.renci.org:8080/thredds/dodsC/2021/ida/11/hsofs/hatteras.renci.org/hsofs-al09-bob/nhcOfcl/fort.61.nc" --data_source 'ASGS'
 
-
 # Another series of runs specifying the stoptime.
-
 python fetch_data.py --data_source 'CONTRAILS' --data_product 'coastal_water_level' --stoptime '2022-01-16 00:00:00'
 python fetch_data.py --data_source 'CONTRAILS' --data_product 'river_water_level' --stoptime '2022-01-16 00:00:00'
 python fetch_data.py --data_source 'NOAA' --data_product 'water_level' --stoptime '2022-01-16 00:00:00'
 
+# Another approach. Force conversion of input url to be of type nowcast
+python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc --data_source 'ASGS' --convertToNowcast
+python fetch_adcirc_data.py --url "http://tds.renci.org:8080/thredds/dodsC/2021/ida/11/hsofs/hatteras.renci.org/hsofs-al09-bob/nhcOfcl/fort.61.nc" --data_source 'ASGS' --convertToNowcast
 

@@ -137,6 +137,8 @@ optional arguments:
   --url URL             ASGS url to fetcb ADCIRC data
   --data_product DATA_PRODUCT
                         choose supported data product: default is water_level
+  --convertToNowcast    Attempts to force input URL into a nowcast url
+                        assuming normal ASGS conventions
 
 The supported data_product is 'water_level' (and is the default)
 The suported data_source is ASGS.
@@ -162,6 +164,13 @@ python fetch_adcirc_data.py --url "http://tds.site.org:8080/thredds/dodsC/2021/i
 #
 adcirc_stationdata_nhcOfcl_HSOFS_11.csv
 adcirc_stationdata_meta_nhcOfcl_HSOFS_11.csv
+
+# Sometimes we want a nowcast but only have available the corresponding forecast. We can FORCE the url to be a standard nowcast url as follows:
+python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc --data_source 'ASGS' --convertToNowcast
+
+# Lastly, --data_source defaults to ASGS. SO a typical invocation goes as:
+python fetch_adcirc_data.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc
+
 
 ###### Invoking older codes. We do not use the below code for our current efforts. But, this can be used to 
 
