@@ -198,6 +198,25 @@ python noaa_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '8
 
 python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '30007' 'GTNN7'
 
+###### Invoking the ASGS abstraction layer
+# The variables and usage are the same as for fetch_adcirc_data.py. This abstraction layer is a helper for 
+# applications that require getting BOTH the FORECAST and associated NOWCAST for the input FORECAST or Hurricane
+#
+# Of course, while one COULD enable the  --convertToNowcast variable you would end up with simply getting the nowcast twice.
+python fetch_adcirc_addNowcast.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --sources             List currently supported data sources
+  --data_source DATA_SOURCE
+                        choose supported data source: default = ASGS
+  --url URL             ASGS url to fetcb ADCIRC data
+  --data_product DATA_PRODUCT
+                        choose supported data product: default is water_level
+  --convertToNowcast    Attempts to force input URL into a nowcast url
+                        assuming normal ASGS conventions
+
+#
 
 ###### CRON tabs. Some basic daily/6-hourly runs can be performed using the below entries. 
 

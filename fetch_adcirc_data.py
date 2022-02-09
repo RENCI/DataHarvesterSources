@@ -91,7 +91,7 @@ def convertInputURLToNowcast(url):
     urlwords=url.split('/')
     urlwords[-2]='nowcast'
     newurl='/'.join(urlwords)
-    utilities.log.info('Modified input URL toi be a nowcast type')
+    utilities.log.info('Modified input URL to be a nowcast type')
     return newurl
 
 ##

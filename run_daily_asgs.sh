@@ -8,7 +8,7 @@
 
 ## A quick script to process all preceding January days to now.
 
-export PYTHONPATH=/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data
+export PYTHONPATH=/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources
 #export RUNTIMEDIR=./DAILIES-TEST
 export RUNTIMEDIR=/projects/ees/TDS/DataHarvesting/DAILY_HARVESTING
 

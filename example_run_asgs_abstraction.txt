@@ -1,0 +1,17 @@
+
+# Test running the ASGS/ADCIRC abstratced layer fetchewr that would be invoked by SV.
+
+# This should work
+python fetch_adcirc_addNowcast.py --url http://tds.renci.org:8080/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc --data_source 'ASGS'
+
+# How about a Hurricane
+python fetch_adcirc_addNowcast.py  --url "http://tds.renci.org:8080/thredds/dodsC/2021/ida/11/hsofs/hatteras.renci.org/hsofs-al09-bob/nhcOfcl/fort.61.nc" --data_source 'ASGS' 
+
+# This should fail in the Nowcast only
+python fetch_adcirc_addNowcast.py  --url "http://tds.renci.org:8080/thredds/dodsC/2021/ida/06/hsofs/hatteras.renci.org/hsofs-al09-bob/nhcOfcl/fort.61.nc" --data_source 'ASGS' 
+
+
+# This should find nothing for hsofs only ec95d is there
+python fetch_adcirc_addNowcast.py --url "http://tds.renci.org:8080/thredds/dodsC/2021/ida/4/hsofs/hatteras.renci.org/hsofs-al09-bob/nhcOfcl/fort.61.nc" --data_source 'ASGS' 
+
+
