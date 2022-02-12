@@ -55,11 +55,9 @@ def replaceAndFill(df):
     df=df.fillna(GLOBAL_FILL_VALUE)
     return df
 
-def resample_and_interpolate(df, sample_mins=None)->pd.DataFrame:
+def stations_resample(df, sample_mins=None)->pd.DataFrame:
     """
     Resample (all stations) on a 15min (or other) basis
-    Interpolate nans. Leftover First nans in the series (if any)  
-    get bfilled()  and pad()) to clean up leading/trailing nans
 
     NOTE: Final aggregated data still have flanked nans for some stations because
     The reported times might have been different. 
@@ -75,12 +73,24 @@ def resample_and_interpolate(df, sample_mins=None)->pd.DataFrame:
     if sample_mins is not None:
         timesample=f'{sample_mins}min'
     utilities.log.info('Resampling freq set to {}'.format(timesample))
-    
     dx=df.groupby(pd.Grouper(freq=timesample)).first().reset_index()
-    dx.interpolate(method='polynomial', order=1)
-    dx.fillna(method='bfill',inplace=True) # Any leading nans
-    dx.fillna(method='pad',inplace=True) # any trailing nans
     return dx.set_index('TIME')
+
+def stations_interpolate(df)->pd.DataFrame:
+    """
+
+    NOTE: Final aggregated data still have flanked nans for some stations because
+    The reported times might have been different. 
+
+    Input:
+        df: A time series x stations data frame
+
+    Output:
+        df_out. New time series every 15mins x stations
+    """
+    utilities.log.info('Interpolating station data' )
+    df.interpolate(method='polynomial', order=1, limit=1)
+    return df 
 
 class fetch_station_data(object):
     """
@@ -109,7 +119,9 @@ class fetch_station_data(object):
             utilities.log.info(station)    
             try:
                 dx = self.fetch_single_product(station, self._periods)
-                aggregateData.append(resample_and_interpolate(dx))
+                dx_int = stations_interpolate(dx)
+                aggregateData.append(stations_resample(dx_int))
+                #aggregateData.append(resample_and_interpolate(dx))
                 #tm.sleep(2) # sleep 2 secs
                 #print('Iterate: Kept station is {}'.format(station))
             except Exception as ex:
@@ -138,6 +150,7 @@ class fetch_station_data(object):
         except Exception as e:
             utilities.log.error('Aggregate: error: {}'.format(e))
             ##df_data=np.nan
+        print(df_data)
         return df_data
 
 # TODO Need to sync with df_data

@@ -188,7 +188,7 @@ def returnListOfURLRanges(start_time, end_time, adctype='nowcast'):
         print(step_time)
     return timelist
 
-def get_noaa_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/noaa_stations.txt'):
+def get_noaa_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/config/noaa_stations.txt'):
     """
     Simply read a list of stations from a txt file.
     """
@@ -205,7 +205,7 @@ def get_noaa_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HA
 # /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_rivers.txt'
 # /projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_coastal.txt'
 
-def get_contrails_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_rivers.txt'):
+def get_contrails_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/config/contrails_stations_rivers.txt'):
     """
     A convenience method to fetch river guage lists. 
     Contrails data
@@ -330,8 +330,8 @@ def main(args):
     ## Get default stations: Methods will quietly ignore superfluous stations
     noaa_stations=get_noaa_stations()
 
-    contrails_stations_rivers=get_contrails_stations('/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_rivers.txt')
-    contrails_stations_coastal=get_contrails_stations('/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/fetch_station_data/config/contrails_stations_coastal.txt')
+    contrails_stations_rivers=get_contrails_stations('/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/config/contrails_stations_rivers.txt')
+    contrails_stations_coastal=get_contrails_stations('/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/config/contrails_stations_coastal.txt')
 
     adcirc_stations=noaa_stations+contrails_stations_rivers+contrails_stations_coastal
 
