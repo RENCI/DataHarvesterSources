@@ -97,14 +97,17 @@ class fetch_station_data(object):
     We expect upon entry to this class a LIST of station dataframes (TIME vs PRODUCT)
     with TIME as datetime timestamps and a column of data of the desired units and with a column
     name of the station
+
+   Default return products wil be on the sampling_mins frequency
     """
-    def __init__(self, stations, periods):
+    def __init__(self, stations, periods, resample_mins=15):
         """
         stations:  A list of stations (str) or tuples of (station,adcirc node) (str,int) 
         periods: A list of tuples. [(time1,time2)]
         """
         self._stations=stations
         self._periods=periods
+        self._resampling_mins=resample_mins
 
     def aggregate_station_data(self)->pd.DataFrame:
         """
@@ -120,7 +123,7 @@ class fetch_station_data(object):
             try:
                 dx = self.fetch_single_product(station, self._periods)
                 dx_int = stations_interpolate(dx)
-                aggregateData.append(stations_resample(dx_int))
+                aggregateData.append(stations_resample(dx_int, sample_mins=self._resampling_mins))
                 #aggregateData.append(resample_and_interpolate(dx))
                 #tm.sleep(2) # sleep 2 secs
                 #print('Iterate: Kept station is {}'.format(station))
@@ -252,7 +255,7 @@ class adcirc_fetch_data(fetch_station_data):
 
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
-                datum='MSL', gridname='None', castType='None'):
+                datum='MSL', gridname='None', castType='None', resample_mins=15):
         self._product=product
         #self._interval=interval 
         self._units='metric'
@@ -270,7 +273,7 @@ class adcirc_fetch_data(fetch_station_data):
             #sys.exit(1)
         utilities.log.info('List of ADCIRC generated stations {}'.format(available_stations))
         periods = self._removeEmptyURLPointers(periods)
-        super().__init__(available_stations, periods) # Pass in the full dict
+        super().__init__(available_stations, periods, resample_mins=resample_mins) # Pass in the full dict
 
     def _fetch_adcirc_nodes_from_stations(self, stations, periods) -> OrderedDict():
         """
@@ -451,7 +454,7 @@ class noaanos_fetch_data(fetch_station_data):
             }
 
     def __init__(self, station_id_list, periods, product='water_level', interval=None, units='metric', 
-                datum='MSL'):
+                datum='MSL', resample_mins):
         try:
             self._product=self.products[product] # product
         except KeyError:
@@ -461,7 +464,7 @@ class noaanos_fetch_data(fetch_station_data):
         self._interval=interval
         self._units='metric' # Redundant cleanup TODO
         self._datum=datum
-        super().__init__(station_id_list, periods)
+        super().__init__(station_id_list, periods, resample_mins=resample_mins)
 
     def check_duplicate_time_entries(self, station, stationdata):
         """
@@ -631,7 +634,7 @@ class contrails_fetch_data(fetch_station_data):
     # We expect the calling metyhod to have resolved the different MAP terms for a given source
     # Currently only tested with the NCEM owner
 
-    def __init__(self, station_id_list, periods, config, product='river_water_level', owner='NCEM'):
+    def __init__(self, station_id_list, periods, config, product='river_water_level', owner='NCEM', resample_mins=15):
         self._owner=owner
         try:
             self._product=self.products[product] # product
@@ -642,7 +645,7 @@ class contrails_fetch_data(fetch_station_data):
         print(self._product)
         self._systemkey=config['systemkey']
         self._domain=config['domain']
-        super().__init__(station_id_list, periods)
+        super().__init__(station_id_list, periods, resample_mins=resample_mins)
 
     def build_url_for_contrails_station(self, domain,systemkey,indict)->str:
         """
