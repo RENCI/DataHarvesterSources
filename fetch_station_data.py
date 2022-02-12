@@ -450,7 +450,7 @@ class noaanos_fetch_data(fetch_station_data):
         Let the caller choose to update units and modify the df_meta structure prior to DB uploads
     """
     # dict( persistant tag: source speciific tag )
-    products={ 'water_level':'water_level'  # 6 min
+    products={ 'water_level':'water_level', 'predictions': 'predicted_wl', 'hourly_height':'hourly_height'  # 6 min
             }
 
     def __init__(self, station_id_list, periods, product='water_level', interval=None, units='metric', 

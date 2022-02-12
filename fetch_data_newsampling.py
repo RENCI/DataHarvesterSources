@@ -154,7 +154,7 @@ RESAMPLE=6 # 6 min return sampling
 def process_noaa_stations(time_range, noaa_stations, metadata, data_product='water_level'):
     # Fetch the data
     try:
-        if data_product != 'water_level':
+        if data_product != 'water_level' and data_product!='predicted_wl' and data_product!='hourly_height':
             utilities.log.error('NOAA data product can only be: water_level')
             sys.exit(1)
         noaanos = noaanos_fetch_data(noaa_stations, time_range, data_product, resample_mins=RESAMPLE)
