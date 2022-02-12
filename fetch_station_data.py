@@ -454,7 +454,7 @@ class noaanos_fetch_data(fetch_station_data):
             }
 
     def __init__(self, station_id_list, periods, product='water_level', interval=None, units='metric', 
-                datum='MSL', resample_mins):
+                datum='MSL', resample_mins=15):
         try:
             self._product=self.products[product] # product
         except KeyError:
