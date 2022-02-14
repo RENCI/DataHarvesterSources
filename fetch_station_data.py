@@ -449,13 +449,12 @@ class noaanos_fetch_data(fetch_station_data):
         the units for how the data were stored not fetched. So it wouid be easay for the calling program to get confused.
         Let the caller choose to update units and modify the df_meta structure prior to DB uploads
     """
-    # dict( persistant tag: source speciific tag )
-    #products={ 'water_level':'water_level', 'predictions': 'predicted_wl', 'hourly_height':'hourly_height'  # 6 min
-    #        }
+    # dict( persistant tag: source specific tag )
+    # products defines current products (as keys) and uses the value as a column header in the returned data set
     products={ 'water_level':'water_level',  # 6 min
                'predictions': 'predicted_wl', # 6 min
                'air_pressure': 'air_press',
-               'hourly_height':'water_level', # hourly
+               'hourly_height':'hourly_height', # hourly
                'wind':'spd'}
 
     def __init__(self, station_id_list, periods, product='water_level', interval=None, units='metric', 
@@ -464,14 +463,11 @@ class noaanos_fetch_data(fetch_station_data):
         An interval value of None default to 6 mins. If choosing Tidal or Hourhy Height specify interval as h
         """
         try:
-            self._product=self.products[product] # product
+            self._product=product # product
             utilities.log.info('NOAA Fetching product {}'.format(self._product))
         except KeyError:
             utilities.log.error('NOAA/NOS No such product key. Input {}, Available {}'.format(product, self.products.keys()))
             sys.exit(1)
-
-        if self._product.lower == 'predictions' or self._product.lower == 'hourly_height':
-            self._interval='h'
         else:
             self._interval=interval
         self._units='metric' # Redundant cleanup TODO
@@ -532,7 +528,7 @@ class noaanos_fetch_data(fetch_station_data):
                                                 datum=self._datum,
                                                 units=self._units,
                                                 interval=self._interval, # If none defaults to 6min
-                                                time_zone=GLOBAL_TIMEZONE)[self._product].to_frame()
+                                                time_zone=GLOBAL_TIMEZONE)[self.products[self._product]].to_frame()
                 dx, multivalue = self.check_duplicate_time_entries(station, dx)
                 # Put checks in here in case we want to exclude these stations with multiple values
                 dx.reset_index(inplace=True)
@@ -548,7 +544,7 @@ class noaanos_fetch_data(fetch_station_data):
             except Timeout:
                 utilities.log.error('Hard fail: Timeout')
             except Exception as e:
-                utilities.log.error('NOAA/NOS data error: {}'.format(e))
+                utilities.log.error('NOAA/NOS data error: {} was {}'.format(e, self._product))
         try:
             df_data = pd.concat(datalist)
             df_data=df_data.astype(float)
