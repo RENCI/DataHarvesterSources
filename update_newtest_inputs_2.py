@@ -259,7 +259,7 @@ def process_noaa_stations(time_range, noaa_stations, metadata):
     except Exception as e:
         utilities.log.error('Error: NOAA: {}'.format(e))
 
-def process_contrails_stations(periods, contrails_stations, product_type, metadata):
+def process_contrails_stations(periods, contrails_stations, product_type, metadata, config):
     # Fetch the data
     try:
         contrails = contrails_fetch_data(contrails_stations, periods, config, product=product_type, owner='NCEM')
@@ -301,12 +301,6 @@ def process_forecast_stations(urls_fc, adcirc_stations, metadata, gridname):
     except IndexError as e:
         utilities.log.error('Error: FORECAST: {}'.format(e))
 
-## Set up Contrails
-domain='http://contrail.nc.gov:8080/OneRain/DataAPI'
-systemkey = '20cebc91-5838-49b1-ab01-701324161aa8'
-config={'domain':'http://contrail.nc.gov:8080/OneRain/DataAPI',
-    'systemkey':'20cebc91-5838-49b1-ab01-701324161aa8'}
-
 def main(args):
     """
     Generally we anticipate inputting a STOPTIME
@@ -318,6 +312,11 @@ def main(args):
         time_stop=dt.datetime.strptime(args.stoptime,dformat)
     else:
         time_stop=dt.datetime.now()
+
+    # Setup Contrails
+    contrails_config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
+    utilities.log.info('Got Contrails access information')
+    print('Contrails {}'.format(contrails_config))
 
     time_start=time_stop+timedelta(days=args.ndays) # How many days BACK
     starttime=dt.datetime.strftime(time_start, dformat)
@@ -373,11 +372,11 @@ def main(args):
 # def __init__(self, station_id_list, periods, config, product='river_water_level', owner='NCEM'):
 
     contrails_river_metadata='_RIVERS_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-    process_contrails_stations(periods, contrails_stations_rivers, 'river_water_level', contrails_river_metadata)
+    process_contrails_stations(periods, contrails_stations_rivers, 'river_water_level', contrails_river_metadata, contrails_config)
 
     # Coastal
     contrails_coastal_metadata='_COASTAL_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-    process_contrails_stations(periods, contrails_stations_coastal, 'coastal_water_level', contrails_coastal_metadata)
+    process_contrails_stations(periods, contrails_stations_coastal, 'coastal_water_level', contrails_coastal_metadata, contrails_config)
 
     # NOWCAST ADCIRC
     nowcast_metadata = '_nowcast_'+args.gridname.upper()+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
