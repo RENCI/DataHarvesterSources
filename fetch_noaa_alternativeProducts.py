@@ -179,19 +179,6 @@ def returnListOfURLRanges(start_time, end_time, adctype='nowcast'):
         print(step_time)
     return timelist
 
-def get_noaa_stations(fname='/projects/sequence_analysis/vol1/prediction_work/HARVESTOR/DataHarvesterSources/config/noaa_stations.txt'):
-    """
-    Simply read a list of stations from a txt file.
-    """
-    # choose the HSOFS list that includes the islands
-
-    noaa_stations=list()
-    with open(fname) as f:
-        for station in f:
-            noaa_stations.append(station)
-    noaa_stations=[word.rstrip() for word in noaa_stations[1:]] # Strip off comment line
-    return noaa_stations
-
 def format_data_frames(df, df_meta):
     """
     A Common formatting used by all sources
@@ -245,7 +232,7 @@ def main(args):
     print('Time range is {} to {}, ndays is {}'.format(starttime,endtime,args.ndays))
 
     ## Get default stations: Methods will quietly ignore superfluous stations
-    noaa_stations=get_noaa_stations()
+    noaa_stations=fetch_data.get_noaa_stations()
 
     # Build ranges for contrails ( and noaa/nos if you like)
     time_range=[(starttime,endtime)] # Can be directly used by NOAA 
