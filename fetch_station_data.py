@@ -445,6 +445,8 @@ class noaanos_fetch_data(fetch_station_data):
         a valid PRODUCT id <str>: hourly_height, water_level,predictions (tidal predictions)
         interval <str> set to 'h' returned hourly data, else 6min data
 
+        Note: hourly_height data only appear after some time period (not sure how long that is). 
+
         NOTE: Default to using imperial units. Because the metadata that gets returned only reports
         the units for how the data were stored not fetched. So it wouid be easay for the calling program to get confused.
         Let the caller choose to update units and modify the df_meta structure prior to DB uploads
