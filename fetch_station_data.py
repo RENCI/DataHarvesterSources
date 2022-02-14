@@ -450,18 +450,30 @@ class noaanos_fetch_data(fetch_station_data):
         Let the caller choose to update units and modify the df_meta structure prior to DB uploads
     """
     # dict( persistant tag: source speciific tag )
-    products={ 'water_level':'water_level', 'predictions': 'predicted_wl', 'hourly_height':'hourly_height'  # 6 min
-            }
+    #products={ 'water_level':'water_level', 'predictions': 'predicted_wl', 'hourly_height':'hourly_height'  # 6 min
+    #        }
+    products={ 'water_level':'water_level',  # 6 min
+               'predictions': 'predicted_wl', # 6 min
+               'air_pressure': 'air_press',
+               'hourly_height':'water_level', # hourly
+               'wind':'spd'}
 
     def __init__(self, station_id_list, periods, product='water_level', interval=None, units='metric', 
                 datum='MSL', resample_mins=15):
+        """
+        An interval value of None default to 6 mins. If choosing Tidal or Hourhy Height specify interval as h
+        """
         try:
             self._product=self.products[product] # product
+            utilities.log.info('NOAA Fetching product {}'.format(self._product))
         except KeyError:
             utilities.log.error('NOAA/NOS No such product key. Input {}, Available {}'.format(product, self.products.keys()))
             sys.exit(1)
 
-        self._interval=interval
+        if self._product.lower == 'predictions' or self._product.lower == 'hourly_height':
+            self._interval='h'
+        else:
+            self._interval=interval
         self._units='metric' # Redundant cleanup TODO
         self._datum=datum
         super().__init__(station_id_list, periods, resample_mins=resample_mins)
@@ -643,6 +655,7 @@ class contrails_fetch_data(fetch_station_data):
             utilities.log.error('Contrails No such product key. Input {}, Available {}'.format(product, self.products.keys()))
             sys.exit(1)
         print(self._product)
+        utilities.log.info('CONTRAILS Fetching product {}'.format(self._product))
         self._systemkey=config['systemkey']
         self._domain=config['domain']
         super().__init__(station_id_list, periods, resample_mins=resample_mins)
