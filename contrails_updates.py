@@ -120,7 +120,7 @@ def main(args):
     metadata = '_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')+'_'+product
 
     # Run the job
-    contrails = contrails_fetch_data(stations, periods, config, product='water_level', owner='NCEM')
+    contrails = contrails_fetch_data(stations, periods, config, product=product, owner='NCEM')
     df_contrails_data = contrails.aggregate_station_data()
     df_contrails_meta = contrails.aggregate_station_metadata()
 
