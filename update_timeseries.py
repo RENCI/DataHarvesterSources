@@ -182,10 +182,8 @@ df_noaa_data = noaanos.aggregate_station_data()
 df_noaa_meta = noaanos.aggregate_station_metadata()
 
 #Contrails
-domain='http://contrail.nc.gov:8080/OneRain/DataAPI'
-systemkey = '20cebc91-5838-49b1-ab01-701324161aa8'
-config={'domain':'http://contrail.nc.gov:8080/OneRain/DataAPI',
-        'systemkey':'20cebc91-5838-49b1-ab01-701324161aa8'}
+config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
+
 #
 contrails = contrails_fetch_data(contrails_stations, periods, config, 'water_level', 'NCEM')
 df_contrails_data = contrails.aggregate_station_data()

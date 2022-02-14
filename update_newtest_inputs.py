@@ -258,10 +258,7 @@ def main(args):
     adcirc_stations=noaa_stations+contrails_stations
 
     ## Set up Contrails
-    domain='http://contrail.nc.gov:8080/OneRain/DataAPI'
-    systemkey = '20cebc91-5838-49b1-ab01-701324161aa8'
-    config={'domain':'http://contrail.nc.gov:8080/OneRain/DataAPI',
-        'systemkey':'20cebc91-5838-49b1-ab01-701324161aa8'}
+    config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
 
     # Build ranges for contrails ( and noaa/nos if you like)
     time_range=[(starttime,endtime)] # Can be directly used by NOAA 

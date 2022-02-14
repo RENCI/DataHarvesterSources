@@ -163,10 +163,7 @@ adcirc_stations,urls=get_adcirc_stations(grid)
 adcirc_stations_fc,urls_fc=get_adcirc_forecast_stations(grid)
 
 #Contrails
-domain='http://contrail.nc.gov:8080/OneRain/DataAPI'
-systemkey = '20cebc91-5838-49b1-ab01-701324161aa8'
-config={'domain':'http://contrail.nc.gov:8080/OneRain/DataAPI',
-        'systemkey':'20cebc91-5838-49b1-ab01-701324161aa8'}
+config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
 
 ## Loop over times. Need these in datetime format to use timedelta. But then convert back to string for the methods.
 
