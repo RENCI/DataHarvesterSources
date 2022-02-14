@@ -167,14 +167,14 @@ def process_noaa_stations(time_range, noaa_stations, metadata, interval=None, da
         utilities.log.error('Error: NOAA: {}'.format(e))
     return noaafile, noaametafile
 
-def process_contrails_stations(periods, contrails_stations, metadata, data_product='river_water_level', resample_mins=15 ):
+def process_contrails_stations(periods, contrails_stations, metadata, in_config, data_product='river_water_level', resample_mins=15 ):
     # Fetch the data
     dproduct=['river_water_level','coastal_water_level']
     if data_product not in dproduct:
         utilities.log.error('Contrails data product can only be: {} was {}'.format(dproduct,data_product))
         sys.exit(1)
     try:
-        contrails = contrails_fetch_data(contrails_stations, periods, config, product=data_product, owner='NCEM', resample_mins=resample_mins)
+        contrails = contrails_fetch_data(contrails_stations, periods, in_config, product=data_product, owner='NCEM', resample_mins=resample_mins)
         df_contrails_data = contrails.aggregate_station_data()
         df_contrails_meta = contrails.aggregate_station_metadata()
         df_contrails_data_out,df_contrails_meta = format_data_frames(df_contrails_data,df_contrails_meta)
@@ -185,12 +185,6 @@ def process_contrails_stations(periods, contrails_stations, metadata, data_produ
     except Exception as e:
         utilities.log.error('Error: CONTRAILS: {}'.format(e))
     return contrailsfile, contrailsfile
-
-## Set up Contrails
-domain='http://contrail.nc.gov:8080/OneRain/DataAPI'
-systemkey = '20cebc91-5838-49b1-ab01-701324161aa8'
-config={'domain':'http://contrail.nc.gov:8080/OneRain/DataAPI',
-    'systemkey':'20cebc91-5838-49b1-ab01-701324161aa8'}
 
 def main(args):
     """
@@ -238,6 +232,9 @@ def main(args):
 
     #Contrails
     if data_source.upper()=='CONTRAILS':
+        # Load contrails secrets
+        contrails_config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
+        utilities.log.info('Got Contrails access information')
         template = "An exception of type {0} occurred."
         excludedStations=list()
         if data_product=='river_water_level':
@@ -254,7 +251,7 @@ def main(args):
             # Get default station list
             contrails_stations=get_contrails_stations(fname)
             contrails_metadata=meta+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-            dataf, metaf = process_contrails_stations(periods, contrails_stations, contrails_metadata, data_product)
+            dataf, metaf = process_contrails_stations(periods, contrails_stations, contrails_metadata, contrails_config, data_product )
         except Exception as ex:
             utilities.log.error('CONTRAILS error {}, {}'.format(template.format(type(ex).__name__, ex.args)))
             sys.exit(1)
