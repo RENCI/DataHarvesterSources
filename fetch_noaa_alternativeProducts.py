@@ -210,7 +210,6 @@ PRODUCT='water_level'
 RESAMPLE=15
 PRODUCT='water_level'
 
-
 def main(args):
     """
     Generally we anticipate inputting a STOPTIME
