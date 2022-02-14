@@ -454,7 +454,7 @@ class noaanos_fetch_data(fetch_station_data):
     products={ 'water_level':'water_level',  # 6 min
                'predictions': 'predicted_wl', # 6 min
                'air_pressure': 'air_press',
-               'hourly_height':'hourly_height', # hourly
+               'hourly_height':'water_level', # hourly
                'wind':'spd'}
 
     def __init__(self, station_id_list, periods, product='water_level', interval=None, units='metric', 
