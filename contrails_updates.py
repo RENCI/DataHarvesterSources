@@ -20,15 +20,7 @@ from datetime import datetime as dt
 from fetch_station_data import contrails_fetch_data, contrails_fetch_data
 from utilities.utilities import utilities as utilities
 
-#
-# Setup authorization codes and setup the dict
-#
-domain='http://contrail.nc.gov:8080/OneRain/DataAPI'
-#method='GetSensorData'
-systemkey = '20cebc91-5838-49b1-ab01-701324161aa8'
-
-config={'domain':'http://contrail.nc.gov:8080/OneRain/DataAPI',
-        'systemkey':'20cebc91-5838-49b1-ab01-701324161aa8'}
+config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
 
 def return_list_of_daily_timeranges(time_tuple)-> list():
     """
@@ -90,6 +82,8 @@ def return_list_of_daily_timeranges(time_tuple)-> list():
 
 main_config = utilities.load_config()
 rootdir=utilities.fetchBasedir(main_config['DEFAULT']['RDIR'], basedirExtra='')
+
+config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
 
 # DEFAULT station list 
 default_stations=['30069', '30054', '30055', '30039', '30006', '30033', '30065', '30029', '30052', '30012', 'WNRN7', '30003', '30050', 'EWPN7', '35370047744601', '30048', '30009', 'GTNN7', '30032', 'MINN7', '30011', 'EGHN7', '30016', 'WSNN7', 'HSWN7', '30008', '30030', 'HBKN7', 'JYCN7', '30010', 'WDVN7', '30031', '30001', 'ORLN7', 'VNCN7', '30060', 'JCKN7', 'ALIN7', '30062', 'CTIN7', 'OCAN7', 'EMWN7', 'BLHN7', 'PNGN7', '30059', 'ROFN7', 'COLN7', '30042', '30002', '30064', '30053', 'WHSN7', '30061', '30058', '30017', 'STYN7', 'STON7', 'GRMN7', 'RMBN7', 'TRTN7', '30015', '30007']

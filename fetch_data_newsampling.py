@@ -240,6 +240,7 @@ def main(args):
 
     #Contrails
     if data_source.upper()=='CONTRAILS':
+        contrails_config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
         template = "An exception of type {0} occurred."
         excludedStations=list()
         if data_product=='river_water_level':
@@ -256,7 +257,7 @@ def main(args):
             # Get default station list
             contrails_stations=get_contrails_stations(fname)
             contrails_metadata=meta+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-            dataf, metaf = process_contrails_stations(periods, contrails_stations, contrails_metadata, data_product)
+            dataf, metaf = process_contrails_stations(periods, contrails_stations, contrails_metadata, contrails_config, data_product)
         except Exception as ex:
             utilities.log.error('CONTRAILS error {}, {}'.format(template.format(type(ex).__name__, ex.args)))
             sys.exit(1)
