@@ -196,7 +196,7 @@ python noaa_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '8
 #    o8419317  8635750
 #
 
-python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '30007' 'GTNN7'
+python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --stations '30007' 'GTNN7'  --product 'river_water_level'
 
 ###### Invoking the ASGS abstraction layer
 # The variables and usage are the same as for fetch_adcirc_data.py. This abstraction layer is a helper for 
