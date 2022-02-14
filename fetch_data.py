@@ -149,13 +149,13 @@ PRODUCT='water_level'
 ## Run stations
 ##
 
-def process_noaa_stations(time_range, noaa_stations, metadata, data_product='water_level'):
+def process_noaa_stations(time_range, noaa_stations, metadata, interval=None, data_product='water_level', resample_mins=15 ):
     # Fetch the data
     try:
-        if data_product != 'water_level':
-            utilities.log.error('NOAA data product can only be: water_level')
+        if data_product != 'water_level' and data_product!='predictions' and data_product!='hourly_height':
+            utilities.log.error('New NOAA data product can only be: water_level')
             sys.exit(1)
-        noaanos = noaanos_fetch_data(noaa_stations, time_range, data_product)
+        noaanos = noaanos_fetch_data(noaa_stations, time_range, data_product, interval=interval, resample_mins=resample_mins)
         df_noaa_data = noaanos.aggregate_station_data()
         df_noaa_meta = noaanos.aggregate_station_metadata()
         df_noaa_data_out,df_noaa_meta = format_data_frames(df_noaa_data,df_noaa_meta)
@@ -167,14 +167,14 @@ def process_noaa_stations(time_range, noaa_stations, metadata, data_product='wat
         utilities.log.error('Error: NOAA: {}'.format(e))
     return noaafile, noaametafile
 
-def process_contrails_stations(periods, contrails_stations, metadata, data_product='river_water_level'):
+def process_contrails_stations(periods, contrails_stations, metadata, data_product='river_water_level', resample_mins=15 ):
     # Fetch the data
     dproduct=['river_water_level','coastal_water_level']
     if data_product not in dproduct:
-        utilities.log.error('Contrails data product can only be: {}'.format(dproduct))
+        utilities.log.error('Contrails data product can only be: {} was {}'.format(dproduct,data_product))
         sys.exit(1)
     try:
-        contrails = contrails_fetch_data(contrails_stations, periods, config, product=data_product, owner='NCEM')
+        contrails = contrails_fetch_data(contrails_stations, periods, config, product=data_product, owner='NCEM', resample_mins=resample_mins)
         df_contrails_data = contrails.aggregate_station_data()
         df_contrails_meta = contrails.aggregate_station_metadata()
         df_contrails_data_out,df_contrails_meta = format_data_frames(df_contrails_data,df_contrails_meta)
