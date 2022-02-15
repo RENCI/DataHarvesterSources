@@ -94,7 +94,7 @@ def returnListOfURLRanges(start_time, end_time, adctype='nowcast'):
     The list entries are valid TIMES to buld URLS
     for the HSOFS fetched from the RENCI server for the year 2021.
     Eg:
-    http://tds.renci.org:8080/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc"
+    http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc"
     """
     periods=list()
     dformat='%Y-%m-%d %H:%M:%S'

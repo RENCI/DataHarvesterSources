@@ -147,7 +147,7 @@ def returnListOfURLRanges(start_time, end_time, adctype='nowcast'):
     The list entries are valid TIMES to buld URLS
     for the HSOFS fetched from the RENCI server for the year 2021.
     Eg:
-    http://tds.renci.org:8080/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc"
+    http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc"
     """
     periods=list()
     dformat='%Y-%m-%d %H:%M:%S'
@@ -266,7 +266,7 @@ def main(args):
 
     # Now build urls
     # NOWCASTS
-    nowfrmt='http://tds.renci.org:8080/thredds/dodsC/2021/nam/%s/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc'
+    nowfrmt='http://tds.renci.org/thredds/dodsC/2021/nam/%s/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc'
     listtimes = returnListOfURLRanges(starttime, endtime, adctype='nowcast')
     urls=list()
     for time in listtimes:
@@ -274,7 +274,7 @@ def main(args):
         urls.append(url) # This would replace PERIODS in the DH fetcher codes
 
     #FORECASTS
-    forefrmt='http://tds.renci.org:8080/thredds/dodsC/2021/nam/%s/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc'   
+    forefrmt='http://tds.renci.org/thredds/dodsC/2021/nam/%s/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc'   
     listtimes = returnListOfURLRanges(starttime, endtime, adctype='forecast')
     urls_fc=list()
     for time in listtimes:

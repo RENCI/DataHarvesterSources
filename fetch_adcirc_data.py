@@ -132,7 +132,7 @@ def process_adcirc_stations(url, adcirc_stations, gridname, instance, metadata, 
 def stripTimeFromURL(url):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "time" information will be in position .split('/')[-6]
-    eg. 'http://tds.renci.org:8080/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
+    eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
     
     Return time string in either ASGS formatted '%Y%m%d%H' or possibly as a hurricane advisory string (to be checked later)
     """
@@ -143,7 +143,7 @@ def stripTimeFromURL(url):
 def stripInstanceFromURL(url):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "instance" information will be in position .split('/')[-2]
-    eg. 'http://tds.renci.org:8080/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
+    eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
     
     Return:
         Instance string
@@ -155,7 +155,7 @@ def stripInstanceFromURL(url):
 def grabGridnameFromURL(url):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "grid" information will be in position .split('/')[-2]
-    eg. 'http://tds.renci.org:8080/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
+    eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
     
     Return:
         grid.upper() string
