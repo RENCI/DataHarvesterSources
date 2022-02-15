@@ -166,10 +166,10 @@ adcirc_stationdata_nhcOfcl_HSOFS_11.csv
 adcirc_stationdata_meta_nhcOfcl_HSOFS_11.csv
 
 # Sometimes we want a nowcast but only have available the corresponding forecast. We can FORCE the url to be a standard nowcast url as follows:
-python fetch_adcirc_data.py --url http://tds.renci.org/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc --data_source 'ASGS' --convertToNowcast
+python fetch_adcirc_data.py --url http://tds.site.org/thredds/dodsC/2022/nam/2022011600/hsofs/machine.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc --data_source 'ASGS' --convertToNowcast
 
 # Lastly, --data_source defaults to ASGS. SO a typical invocation goes as:
-python fetch_adcirc_data.py --url http://tds.renci.org/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc
+python fetch_adcirc_data.py --url http://tds.site.org/thredds/dodsC/2022/nam/2022011600/hsofs/machine.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc
 
 
 ###### Invoking older codes. We do not use the below code for our current efforts. But, this can be used to 
@@ -203,7 +203,7 @@ python contrails_updates.py --stoptime '2021-09-04 00:30:00' --ndays -3 --statio
 # applications that require getting BOTH the FORECAST and associated NOWCAST for the input FORECAST or Hurricane
 #
 # Of course, while one COULD enable the  --convertToNowcast variable you would end up with simply getting the nowcast twice.
-python fetch_adcirc_addNowcast.py --url http://tds.renci.org/thredds/dodsC/2022/nam/2022011600/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc
+python fetch_adcirc_addNowcast.py --url http://tds.site.org/thredds/dodsC/2022/nam/2022011600/hsofs/machine.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc
 
 optional arguments:
   -h, --help            show this help message and exit
