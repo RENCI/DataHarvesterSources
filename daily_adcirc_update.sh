@@ -25,8 +25,8 @@ printf "Current rumtime in yyyy-mm-dd hh format %s\n" "$year-$month-$day $hour"
 if [ "$hour" -eq "00" ] || [ "$hour" -eq "06" ] || [ "$hour" -eq "12" ] || [ "$hour" -eq "18" ]
     then
         urltime="$year$month$day$hour"
-        /home/jtilson/anaconda3/bin/python fetch_adcirc_data.py --url "http://tds.renci.org:8080/thredds/dodsC/$year/nam/$urltime/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc" --data_source 'ASGS'
-        /home/jtilson/anaconda3/bin/python fetch_adcirc_data.py --url "http://tds.renci.org:8080/thredds/dodsC/$year/nam/$urltime/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc" --data_source 'ASGS'
+        /home/jtilson/anaconda3/bin/python fetch_adcirc_data.py --url "http://tds.renci.org/thredds/dodsC/$year/nam/$urltime/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc" --data_source 'ASGS'
+        /home/jtilson/anaconda3/bin/python fetch_adcirc_data.py --url "http://tds.renci.org/thredds/dodsC/$year/nam/$urltime/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc" --data_source 'ASGS'
         echo "Requested ASGS data"
     else
     # Cron should have taken care of this but here we are...
