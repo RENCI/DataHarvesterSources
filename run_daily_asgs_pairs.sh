@@ -11,9 +11,9 @@ export RUNTIMEDIR=/projects/ees/TDS/DataHarvesting/DAILY_HARVESTING
 
 # ADCIRC
 
-for DAYS in 02 ; do
-    for HOURS in 00 06 ; do
-        python fetch_adcirc_addNowcast.py --url "http://tds.renci.org:8080/thredds/dodsC/2022/nam/202202$DAYS$HOURS/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc" --data_source 'ASGS'
+for DAYS in 14 15 ; do
+    for HOURS in 00 06 12 18 ; do
+        python fetch_adcirc_addNowcast.py --url "http://tds.renci.org/thredds/dodsC/2022/nam/202202$DAYS$HOURS/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast/fort.61.nc" --data_source 'ASGS'
     done
 done
 
