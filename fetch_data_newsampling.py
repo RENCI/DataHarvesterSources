@@ -20,7 +20,7 @@ import math
 from datetime import timedelta
 import datetime as dt
 
-from fetch_station_data import noaanos_fetch_data, contrails_fetch_data
+import fetch_data as fetch_data
 from utilities.utilities import utilities as utilities
 
 main_config = utilities.load_config()
@@ -38,88 +38,6 @@ rootdir=utilities.fetchBasedir(main_config['DEFAULT']['RDIR'], basedirExtra='')
 
 # Currently supported sources
 SOURCES = ['NOAA','CONTRAILS']
-
-def return_list_of_daily_timeranges(time_tuple)-> list():
-    """
-    Input:
-        A tuple consisting of:
-        start_time: Time of format %Y-%m-%d %H:%M:%S (str)
-        end_time: Time of format %Y-%m-%d %H:%M:%S (str)
-
-    Output:
-        periods: List of daily tuple ranges
-
-    Take an arbitrary start and end time (inclusive) in the format of %Y-%m-%d %H:%M:%S. Break up into a list of tuples which 
-    which are at most a day in length AND break along day boundaries. [ {day1,day1),(day2,day2)..]
-    The first tuple and the last tuple can be partial days. All intervening tuples will be full days.
-    defined as ending on 23h,59m,59s
-
-    Assume an HOURLY stepping even though non-zero minute offsets may be in effect.
-    
-    Return:  
-    """
-
-    print('INPUT LIST {}'.format(time_tuple))
-    start_time=time_tuple[0]
-    end_time=time_tuple[1]
-    print(start_time)
-    print(end_time)
-    periods=list()
-    dformat='%Y-%m-%d %H:%M:%S'
-    print('Input: start time {}, end_time {}'.format(start_time, end_time))
-    
-    time_start = dt.datetime.strptime(start_time, dformat)
-    time_end = dt.datetime.strptime(end_time, dformat) 
-    if time_start > time_end:
-        print('Swapping input times') # I want to be able to log this eventually
-        time_start, time_end = time_end, time_start
-        
-    today = dt.datetime.today()
-    if time_end > today:
-          time_end = today
-          print('Contrails: Truncating list: new end time is {} '.format(dt.datetime.strftime(today, dformat)))
-                           
-    #What hours/min/secs are we starting on - compute proper interval shifting
-    
-    init_hour = 24-math.floor(time_start.hour)-1
-    init_min = 60-math.floor(time_start.minute)-1
-    init_sec = 60-math.floor(time_start.second)-1
-    
-    oneSecond=timedelta(seconds=1) # An update interval shift
-
-    subrange_start = time_start   
-    while subrange_start <= time_end:
-        interval = timedelta(hours=init_hour, minutes=init_min, seconds=init_sec)
-        subrange_end=min(subrange_start+interval,time_end) # Need a variable interval to prevent a day-span  
-        periods.append( (dt.datetime.strftime(subrange_start,dformat),dt.datetime.strftime(subrange_end,dformat)) )
-        subrange_start=subrange_end+oneSecond # onehourint
-        init_hour, init_min, init_sec = 23,59,59
-    return periods
-
-def get_noaa_stations(fname='./config/noaa_stations.txt'):
-    """
-    Simply read a list of stations from a txt file.
-    """
-    # choose the HSOFS list that includes the islands
-
-    noaa_stations=list()
-    with open(fname) as f:
-        for station in f:
-            noaa_stations.append(station)
-    noaa_stations=[word.rstrip() for word in noaa_stations[1:]] # Strip off comment line
-    return noaa_stations
-
-def get_contrails_stations(fname='./config/contrails_stations.txt'):
-    """
-    A convenience method to fetch river guage lists. 
-    Contrails data
-    """
-    contrails_stations=list()
-    with open(fname) as f:
-        for station in f:
-            contrails_stations.append(station)
-    contrails_stations=[word.rstrip() for word in contrails_stations[1:]] # Strip off comment line
-    return contrails_stations
 
 def format_data_frames(df, df_meta):
     """
@@ -151,48 +69,9 @@ RESAMPLE=15 # 15 min return sampling
 ## Run stations
 ##
 
-def process_noaa_stations(time_range, noaa_stations, metadata, data_product='water_level'):
-    # Fetch the data
-    try:
-        if data_product != 'water_level' and data_product!='predictions' and data_product!='hourly_height':
-            utilities.log.error('New NOAA data product can only be: water_level')
-            sys.exit(1)
-        noaanos = noaanos_fetch_data(noaa_stations, time_range, data_product, resample_mins=RESAMPLE)
-        df_noaa_data = noaanos.aggregate_station_data()
-        df_noaa_meta = noaanos.aggregate_station_metadata()
-        df_noaa_data_out,df_noaa_meta = format_data_frames(df_noaa_data,df_noaa_meta)
-        # Save data
-        noaafile=utilities.writeCsv(df_noaa_data_out, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=metadata)
-        noaametafile=utilities.writeCsv(df_noaa_meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=metadata)
-        utilities.log.info('NOAA data has been stored {},{}'.format(noaafile,noaametafile))
-    except Exception as e:
-        utilities.log.error('Error: NOAA: {}'.format(e))
-    return noaafile, noaametafile
-
-def process_contrails_stations(periods, contrails_stations, metadata, data_product='river_water_level'):
-    # Fetch the data
-    dproduct=['river_water_level','coastal_water_level']
-    if data_product not in dproduct:
-        utilities.log.error('Contrails data product can only be: {} was {}'.format(dproduct,data_product))
-        sys.exit(1)
-    try:
-        contrails = contrails_fetch_data(contrails_stations, periods, config, product=data_product, owner='NCEM', resample_mins=RESAMPLE)
-        df_contrails_data = contrails.aggregate_station_data()
-        df_contrails_meta = contrails.aggregate_station_metadata()
-        df_contrails_data_out,df_contrails_meta = format_data_frames(df_contrails_data,df_contrails_meta)
-        # Save data
-        contrailsfile=utilities.writeCsv(df_contrails_data_out, rootdir=rootdir,subdir='',fileroot='contrails_stationdata',iometadata=metadata)
-        contrailsmetafile=utilities.writeCsv(df_contrails_meta, rootdir=rootdir,subdir='',fileroot='contrails_stationdata_meta',iometadata=metadata)
-        utilities.log.info('CONTRAILS data has been stored {},{}'.format(contrailsfile,contrailsmetafile))
-    except Exception as e:
-        utilities.log.error('Error: CONTRAILS: {}'.format(e))
-    return contrailsfile, contrailsfile
-
 ## Set up Contrails
-domain='http://contrail.nc.gov:8080/OneRain/DataAPI'
-systemkey = '20cebc91-5838-49b1-ab01-701324161aa8'
-config={'domain':'http://contrail.nc.gov:8080/OneRain/DataAPI',
-    'systemkey':'20cebc91-5838-49b1-ab01-701324161aa8'}
+config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
+utilities.log.info('Got Contrails access information')
 
 def main(args):
     """
@@ -232,11 +111,11 @@ def main(args):
     #NOAA/NOS
     if data_source.upper()=='NOAA':
         excludedStations=list()
-        time_range=[(starttime,endtime)] # Can be directly used by NOAA 
+        time_range=(starttime,endtime) # Can be directly used by NOAA 
         # Use default station list
-        noaa_stations=get_noaa_stations()
+        noaa_stations=fetch_data.get_noaa_stations()
         noaa_metadata='_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-        dataf, metaf = process_noaa_stations(time_range, noaa_stations, noaa_metadata, data_product)
+        dataf, metaf = fetch_data.process_noaa_stations(time_range, noaa_stations, noaa_metadata, data_product)
 
     #Contrails
     if data_source.upper()=='CONTRAILS':
@@ -251,13 +130,11 @@ def main(args):
             meta='_COASTAL'
         try:
             # Build ranges for contrails ( and noaa/nos if you like)
-            time_range=[(starttime,endtime)] 
-            periods=return_list_of_daily_timeranges(time_range[0]) # Must be broken up into days
-            print('PERIODS {}'.format(periods))
+            time_range=(starttime,endtime) 
             # Get default station list
-            contrails_stations=get_contrails_stations(fname)
+            contrails_stations=fetch_data.get_contrails_stations(fname)
             contrails_metadata=meta+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-            dataf, metaf = process_contrails_stations(periods, contrails_stations, contrails_metadata, contrails_config, data_product)
+            dataf, metaf = fetch_data.process_contrails_stations(time_range, contrails_stations, contrails_metadata, contrails_config, data_product)
         except Exception as ex:
             utilities.log.error('CONTRAILS error {}, {}'.format(template.format(type(ex).__name__, ex.args)))
             sys.exit(1)

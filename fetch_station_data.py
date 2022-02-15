@@ -20,6 +20,8 @@ import xarray as xr
 import datetime as dt
 from datetime import timedelta
 from utilities.utilities import utilities
+import math
+
 
 
 #Contrails
@@ -500,7 +502,7 @@ class noaanos_fetch_data(fetch_station_data):
 # The weirdness with tstart/tend. Prior work by us indicated noaa coops reqs time formats of %Y%m%d %H:%M')
 # Even though their website says otherwise (as of Oct 2021)
 
-    def fetch_single_product(self, station, periods) -> pd.DataFrame:
+    def fetch_single_product(self, station, time_range) -> pd.DataFrame:
         """
         For a single NOAA NOS site_id, process all the tuples from the input periods list
         and aggregate them into a dataframe with index pd.timestamps and a single column
@@ -511,44 +513,42 @@ class noaanos_fetch_data(fetch_station_data):
         
         Input:
             station <str>. A valid station id
-            periods <list>. A list of tuples (<str>,<str>) denoting time ranges
+            time_range <tuple>. Start and end times (<str>,<str>) denoting time ranges
 
         Return:
             dataframe of time (timestamps) vs values for the requested station
         """
-        datalist=list()
-        for tstart,tend in periods:
-            utilities.log.info('NOAA/NOS:Iterate: start time is {}, end time is {}, station is {}'.format(tstart,tend,station))
-            timein =  pd.Timestamp(tstart).strftime('%Y%m%d %H:%M')
-            timeout =  pd.Timestamp(tend).strftime('%Y%m%d %H:%M')
-            try:
-                stationdata = pd.DataFrame()
-                location = coops.Station(station)
-                dx = location.get_data(begin_date=timein,
-                                                end_date=timeout,
-                                                product=self._product,
-                                                datum=self._datum,
-                                                units=self._units,
-                                                interval=self._interval, # If none defaults to 6min
-                                                time_zone=GLOBAL_TIMEZONE)[self.products[self._product]].to_frame()
-                dx, multivalue = self.check_duplicate_time_entries(station, dx)
-                # Put checks in here in case we want to exclude these stations with multiple values
-                dx.reset_index(inplace=True)
-                dx.set_index(['date_time'], inplace=True)
-                dx.columns=[station]
-                dx.index.name='TIME'
-                dx.index = pd.to_datetime(dx.index)
-                datalist.append(dx)
-            except ConnectionError:
-                utilities.log.error('Hard fail: Could not connect to COOPS for products {}'.format(station))
-            except HTTPError:
-                utilities.log.error('Hard fail: HTTP error to COOPS for products')
-            except Timeout:
-                utilities.log.error('Hard fail: Timeout')
-            except Exception as e:
-                utilities.log.error('NOAA/NOS data error: {} was {}'.format(e, self._product))
+        tstart,tend=time_range
+        utilities.log.info('NOAA/NOS:Iterate: start time is {}, end time is {}, station is {}'.format(tstart,tend,station))
+        timein =  pd.Timestamp(tstart).strftime('%Y%m%d %H:%M')
+        timeout =  pd.Timestamp(tend).strftime('%Y%m%d %H:%M')
         try:
-            df_data = pd.concat(datalist)
+            stationdata = pd.DataFrame()
+            location = coops.Station(station)
+            dx = location.get_data(begin_date=timein,
+                                            end_date=timeout,
+                                            product=self._product,
+                                            datum=self._datum,
+                                            units=self._units,
+                                            interval=self._interval, # If none defaults to 6min
+                                            time_zone=GLOBAL_TIMEZONE)[self.products[self._product]].to_frame()
+            df_data, multivalue = self.check_duplicate_time_entries(station, dx)
+            # Put checks in here in case we want to exclude these stations with multiple values
+            df_data.reset_index(inplace=True)
+            df_data.set_index(['date_time'], inplace=True)
+            df_data.columns=[station]
+            df_data.index.name='TIME'
+            df_data.index = pd.to_datetime(df_data.index)
+        except ConnectionError:
+            utilities.log.error('Hard fail: Could not connect to COOPS for products {}'.format(station))
+        except HTTPError:
+            utilities.log.error('Hard fail: HTTP error to COOPS for products')
+        except Timeout:
+            utilities.log.error('Hard fail: Timeout')
+        except Exception as e:
+            utilities.log.error('NOAA/NOS data error: {} was {}'.format(e, self._product))
+
+        try:
             df_data=df_data.astype(float)
         except Exception as e:
             utilities.log.error('NOAA/NOS concat error: {}'.format(e))
@@ -658,7 +658,65 @@ class contrails_fetch_data(fetch_station_data):
         self._domain=config['domain']
         super().__init__(station_id_list, periods, resample_mins=resample_mins)
 
-    def build_url_for_contrails_station(self, domain,systemkey,indict)->str:
+    # Customized splitting of the timeranger into a list of day-centric tuples.
+    # So far this only applied to CONTRAILS data sources
+
+    def return_list_of_daily_timeranges(self, time_tuple)-> list():
+        """
+        Input:
+            A tuple consisting of:
+            start_time: Time of format %Y-%m-%d %H:%M:%S (str)
+            end_time: Time of format %Y-%m-%d %H:%M:%S (str)
+    
+        Output:
+            periods: List of daily tuple ranges
+    
+        Take an arbitrary start and end time (inclusive) in the format of %Y-%m-%d %H:%M:%S. Break up into a list of tuples which 
+        which are at most a day in length AND break alopng day boundaries. [ {day1,day1),(day2,day2)..]
+        The first tuple and the last tuple can be partial days. All intervening tuples will be full days.
+    
+        Assume an HOURLY stepping even though non-zero minute offsets may be in effect.
+    
+        Return:  
+       """
+        start_time=time_tuple[0]
+        end_time=time_tuple[1]
+        print(start_time)
+        print(end_time)
+        periods=list()
+        dformat='%Y-%m-%d %H:%M:%S'
+        print('Input: start time {}, end_time {}'.format(start_time, end_time))
+    
+        time_start = dt.datetime.strptime(start_time, dformat)
+        time_end = dt.datetime.strptime(end_time, dformat)
+        if time_start > time_end:
+            print('Swapping input times') # I want to be able to log this eventually
+            time_start, time_end = time_end, time_start
+    
+        today = dt.datetime.today()
+        if time_end > today:
+              time_end = today
+              print('Contrails: Truncating list: new end time is {} '.format(dt.datetime.strftime(today, dformat)))
+    
+        #What hours/min/secs are we starting on - compute proper interval shifting
+    
+        init_hour = 24-math.floor(time_start.hour)-1
+        init_min = 60-math.floor(time_start.minute)-1
+        init_sec = 60-math.floor(time_start.second)-1
+    
+        oneSecond=timedelta(seconds=1) # An update interval shift
+    
+        subrange_start = time_start
+        while subrange_start < time_end:
+            interval = timedelta(hours=init_hour, minutes=init_min, seconds=init_sec)
+            subrange_end=min(subrange_start+interval,time_end) # Need a variable interval to prevent a day-span  
+            periods.append( (dt.datetime.strftime(subrange_start,dformat),dt.datetime.strftime(subrange_end,dformat)) )
+            subrange_start=subrange_end+oneSecond # onehourint
+            init_hour, init_min, init_sec = 23,59,59
+        return periods
+
+
+    def build_url_for_contrails_station(self, domain, systemkey, indict)->str:
         """
         Build a simple query for a single gauge and the product level values
         Parameters:
@@ -676,7 +734,7 @@ class contrails_fetch_data(fetch_station_data):
 # fetch_single_data(station)-> pd.DataFrame
 # fetch_single_metadata(station,periods)-> pd.DataFrame
 #
-    def fetch_single_product(self, station, periods) -> pd.DataFrame: 
+    def fetch_single_product(self, station, time_range) -> pd.DataFrame: 
         """
         For a single Contrails site_id, process all tuples from the input periods list
         and aggregate them into a dataframe with index pd.timestamps and a single column
@@ -684,13 +742,14 @@ class contrails_fetch_data(fetch_station_data):
         
         Input:
             station <str>. A valid station id
-            periods <list>. A list of tuples (<str>,<str>) denoting time ranges
+            time_range <tuple>. Start and end times (<str>,<str>) denoting time ranges
 
         Return:
             dataframe of time (timestamps) vs values for the requested station
         """
         METHOD = 'GetSensorData'
         datalist=list()
+        periods = self.return_list_of_daily_timeranges(time_range)
         for tstart,tend in periods:
             utilities.log.info('Iterate: start time is {}, end time is {}, station is {}'.format(tstart,tend,station))
             indict = {'method': METHOD, 'class': self.CLASSDICT[self._product],

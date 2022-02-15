@@ -22,60 +22,6 @@ from utilities.utilities import utilities as utilities
 
 config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
 
-def return_list_of_daily_timeranges(time_tuple)-> list():
-    """
-    Input:
-        A tuple consisting of:
-        start_time: Time of format %Y-%m-%d %H:%M:%S (str)
-        end_time: Time of format %Y-%m-%d %H:%M:%S (str)
-
-    Output:
-        periods: List of daily tuple ranges
-
-    Take an arbitrary start and end time (inclusive) in the format of %Y-%m-%d %H:%M:%S. Break up into a list of tuples which 
-    which are at most a day in length AND break alopng day boundaries. [ {day1,day1),(day2,day2)..]
-    The first tuple and the last tuple can be partial days. All intervening tuples will be full days.
-
-    Assume an HOURLY stepping even though non-zero minute offsets may be in effect.
-    
-    Return:  
-    """
-    start_time=time_tuple[0]
-    end_time=time_tuple[1]
-    print(start_time)
-    print(end_time)
-    periods=list()
-    dformat='%Y-%m-%d %H:%M:%S'
-    print('Input: start time {}, end_time {}'.format(start_time, end_time))
-
-    time_start = dt.strptime(start_time, dformat)
-    time_end = dt.strptime(end_time, dformat)
-    if time_start > time_end:
-        print('Swapping input times') # I want to be able to log this eventually
-        time_start, time_end = time_end, time_start
-
-    today = dt.today()
-    if time_end > today:
-          time_end = today
-          print('Truncating list: new end time is {} '.format(dt.strftime(today, dformat)))
-
-    #What hours/min/secs are we starting on - compute proper interval shifting
-
-    init_hour = 24-math.floor(time_start.hour)-1
-    init_min = 60-math.floor(time_start.minute)-1
-    init_sec = 60-math.floor(time_start.second)-1
-
-    oneSecond=timedelta(seconds=1) # An update interval shift
-
-    subrange_start = time_start
-    while subrange_start < time_end:
-        interval = timedelta(hours=init_hour, minutes=init_min, seconds=init_sec)
-        subrange_end=min(subrange_start+interval,time_end) # Need a variable interval to prevent a day-span  
-        periods.append( (dt.strftime(subrange_start,dformat),dt.strftime(subrange_end,dformat)) )
-        subrange_start=subrange_end+oneSecond # onehourint
-        init_hour, init_min, init_sec = 23,59,59
-    return periods
-
 ##
 ## Start the job
 ##
@@ -102,10 +48,10 @@ def main(args):
     time_start=time_stop-timedelta(days=ndays)
     starttime=dt.strftime(time_start, dformat)
     endtime=dt.strftime(time_stop, dformat)
-    time_range=[(starttime,endtime)] # A list of tuples
+    time_range=(starttime,endtime) # A time_range tuple
 
-    periods=return_list_of_daily_timeranges(time_range[0])
-    print(periods)
+    ##periods=return_list_of_daily_timeranges(time_range[0])
+    ##print(periods)
 
     metadata = '_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')+'_'+product
 
@@ -120,7 +66,7 @@ def main(args):
     metadata = '_'+starttime.replace(' ','T')+'_'+endtime.replace(' ','T')+'_'+product
 
     # Run the job
-    contrails = contrails_fetch_data(stations, periods, config, product=product, owner='NCEM')
+    contrails = contrails_fetch_data(stations, time_range, config, product=product, owner='NCEM')
     df_contrails_data = contrails.aggregate_station_data()
     df_contrails_meta = contrails.aggregate_station_metadata()
 
@@ -144,7 +90,7 @@ if __name__ == '__main__':
                         help='Number of look-back days from stoptime (or now)')
     parser.add_argument('--stoptime', action='store', dest='stoptime', default=None, type=str, 
                         help='Desired stoptime YYYY-mm-dd HH:MM:SS. Default=now')
-    parser.add_argument('--product', action='store', dest='product', default='water_level', type=str, 
+    parser.add_argument('--product', action='store', dest='product', default='river_water_level', type=str, 
                         help='Desired product')
     parser.add_argument('--stations', nargs="*", type=str, action='store', dest='stations', default=None,
                         help='List of str station ids')

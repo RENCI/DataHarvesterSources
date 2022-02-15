@@ -39,7 +39,7 @@ def main(args):
     time_start=time_stop-timedelta(days=ndays)
     starttime=dt.strftime(time_start, dformat)
     endtime=dt.strftime(time_stop, dformat)
-    time_range=[(starttime,endtime)] # A list of tuples
+    time_range=(starttime,endtime) # A time_range tuple
 
     # Choose stations or grab default list
     if args.stations is not None:
