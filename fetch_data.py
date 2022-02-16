@@ -39,7 +39,8 @@ rootdir=utilities.fetchBasedir(main_config['DEFAULT']['RDIR'], basedirExtra='')
 # Currently supported sources
 SOURCES = ['NOAA','CONTRAILS']
 
-def get_noaa_stations(fname='./config/noaa_stations.txt'):
+#def get_noaa_stations(fname='./config/noaa_stations.txt'):
+def get_noaa_stations(fname=os.path.join(os.path.dirname(__file__),'./config','noaa_stations.txt')):
     """
     Simply read a list of stations from a txt file.
     """
@@ -52,7 +53,8 @@ def get_noaa_stations(fname='./config/noaa_stations.txt'):
     noaa_stations=[word.rstrip() for word in noaa_stations[1:]] # Strip off comment line
     return noaa_stations
 
-def get_contrails_stations(fname='./config/contrails_stations.txt'):
+#def get_contrails_stations(fname='./config/contrails_stations.txt'):
+def get_contrails_stations(fname=os.path.join(os.path.dirname(__file__),'./config','contrails_stations.txt')):
     """
     A convenience method to fetch river guage lists. 
     Contrails data
@@ -176,7 +178,8 @@ def main(args):
     #Contrails
     if data_source.upper()=='CONTRAILS':
         # Load contrails secrets
-        contrails_config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
+        #contrails_config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
+        contrails_config = utilities.load_config(os.path.join(os.path.dirname(__file__),'./secrets','contrails.yml'))['DEFAULT']
         utilities.log.info('Got Contrails access information')
         template = "An exception of type {0} occurred."
         excludedStations=list()
