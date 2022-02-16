@@ -125,18 +125,6 @@ def returnListOfURLRanges(start_time, end_time, adctype='nowcast'):
         print(step_time)
     return timelist
 
-def format_data_frames(df, df_meta):
-    """
-    A Common formatting used by all sources
-    """
-    df.index = df.index.strftime('%Y-%m-%dT%H:%M:%S')
-    df.reset_index(inplace=True)
-    df_out=pd.melt(df, id_vars=['TIME'])
-    df_out.columns=('TIME','STATION',PRODUCT.upper())
-    df_out.set_index('TIME',inplace=True)
-    df_meta.index.name='STATION'
-    return df_out, df_meta
-
 ##
 ## End functions
 ##
@@ -184,7 +172,16 @@ def main(args):
 
     #NOAA/NOS
     noaa_metadata='_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-    fetch_data.process_noaa_stations(time_range, noaa_stations, noaa_metadata, data_product=PRODUCT, resample_mins=RESAMPLE)
+    data, meta = fetch_data.process_noaa_stations(time_range, noaa_stations, noaa_metadata, PRODUCT)
+    df_noaa_data = fetch_data.format_data_frames(data) # Melt the data :s Harvester default format
+    # Output
+    try:
+        dataf=utilities.writeCsv(df_noaa_data, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=noaa_metadata)
+        metaf=utilities.writeCsv(meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=noaa_metadata)
+        utilities.log.info('NOAA data has been stored {},{}'.format(dataf,metaf))
+    except Exception as e:
+        utilities.log.error('Error: NOAA: Failed Write {}'.format(e))
+        sys.exit(1)
 
     print('Finished')
 

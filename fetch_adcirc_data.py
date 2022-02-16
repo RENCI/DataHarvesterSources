@@ -38,7 +38,7 @@ def get_adcirc_stations(fname='./config/adcirc_stations.txt'):
     adcirc_stations=[word.rstrip() for word in adcirc_stations[1:]] # Strip off comment line
     return adcirc_stations
 
-def format_data_frames(df, df_meta):
+def format_data_frames(df):
     """
     A Common formatting used by all sources
     """
@@ -47,8 +47,7 @@ def format_data_frames(df, df_meta):
     df_out=pd.melt(df, id_vars=['TIME'])
     df_out.columns=('TIME','STATION',PRODUCT.upper())
     df_out.set_index('TIME',inplace=True)
-    df_meta.index.name='STATION'
-    return df_out, df_meta
+    return df_out
 
 # The hurricane methods are for the future
 def checkAdvisory(value):
@@ -120,14 +119,9 @@ def process_adcirc_stations(url, adcirc_stations, gridname, instance, metadata, 
         adcirc = adcirc_fetch_data(adcirc_stations, url, data_product, gridname=gridname, castType=instance.rstrip())
         df_adcirc_data = adcirc.aggregate_station_data()
         df_adcirc_meta = adcirc.aggregate_station_metadata()
-        df_adcirc_data_out,df_adcirc_meta = format_data_frames(df_adcirc_data,df_adcirc_meta)
-        # Save data
-        adcircfile=utilities.writeCsv(df_adcirc_data_out, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata',iometadata=metadata)
-        adcircmetafile=utilities.writeCsv(df_adcirc_meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta',iometadata=metadata)
-        utilities.log.info('ADCIRC data has been stored {},{}'.format(adcircfile,adcircmetafile))
     except Exception as e:
         utilities.log.error('Error: ADCIRC: {}'.format(e))
-    return adcircfile, adcircmetafile
+    return df_adcirc_data, df_adcirc_meta 
 
 def stripTimeFromURL(url):
     """
@@ -226,16 +220,22 @@ def main(args):
     #ASGS
     if data_source.upper()=='ASGS':
         excludedStations=list()
-
         urls=[url] # Can be directly used by NOAA 
-
         # Use default station list
         adcirc_stations=get_adcirc_stations()
         adcirc_metadata='_'+instance+'_'+gridname.upper()+'_'+runtime.replace(' ','T')
-        dataf, metaf = process_adcirc_stations(urls, adcirc_stations, gridname, instance, adcirc_metadata, data_product)
+        data, meta = process_adcirc_stations(urls, adcirc_stations, gridname, instance, adcirc_metadata, data_product)
+        df_adcirc_data = format_data_frames(data)
+        # Output 
+        try:
+            dataf=utilities.writeCsv(df_adcirc_data, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata',iometadata=adcirc_metadata)
+            metaf=utilities.writeCsv(meta, rootdir=rootdir,subdir='',fileroot='adcirc_stationdata_meta',iometadata=adcirc_metadata)
+            utilities.log.info('ADCIRC data has been stored {},{}'.format(dataf,metaf))
+        except Exception as e:
+            utilities.log.error('Error: ADCIRC: Failed Write {}'.format(e))
+            sys.exit(1)
 
     utilities.log.info('Finished with data source {}'.format(data_source))
-    utilities.log.info('Data file {}, meta file {}'.format(dataf,metaf))
     utilities.log.info('Finished')
 
 if __name__ == '__main__':

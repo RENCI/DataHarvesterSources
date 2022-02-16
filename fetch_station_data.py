@@ -50,7 +50,7 @@ GLOBAL_TIMEZONE='gmt' # Every source is set or presumed to return times in the z
 GLOBAL_FILL_VALUE='-99999'
 UNITS='meters' # Now the code only applies to WL
 
-def replaceAndFill(df):
+def replace_and_fill(df):
     """
     Replace all Nans ans 'None" valuesa with GLOBAL_FILL_VALUE
     """
@@ -151,7 +151,7 @@ class fetch_station_data(object):
                 utilities.log.warning('had duplicate times {} {}'.format(len(idx),len(df_data.index)))
             # I have seen lots of nans coming from ADCIRC
             #df_data.dropna(how='all', axis=1, inplace=True)
-            df_data = replaceAndFill(df_data)
+            df_data = replace_and_fill(df_data)
         except Exception as e:
             utilities.log.error('Aggregate: error: {}'.format(e))
             ##df_data=np.nan
@@ -185,7 +185,7 @@ class fetch_station_data(object):
         utilities.log.info('{} Metadata Stations were excluded'.format(len(excludedStations)))
         df_meta = pd.concat(aggregateMetaData, axis=1).T
         #df_meta.dropna(how='all', axis=1, inplace=True)
-        df_meta = replaceAndFill(df_meta)
+        df_meta = replace_and_fill(df_meta)
         return df_meta
 
 #####################################################################################

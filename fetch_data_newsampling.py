@@ -39,7 +39,7 @@ rootdir=utilities.fetchBasedir(main_config['DEFAULT']['RDIR'], basedirExtra='')
 # Currently supported sources
 SOURCES = ['NOAA','CONTRAILS']
 
-def format_data_frames(df, df_meta):
+def format_data_frames(df):
     """
     A Common formatting used by all sources
     """
@@ -48,8 +48,7 @@ def format_data_frames(df, df_meta):
     df_out=pd.melt(df, id_vars=['TIME'])
     df_out.columns=('TIME','STATION',PRODUCT.upper())
     df_out.set_index('TIME',inplace=True)
-    df_meta.index.name='STATION'
-    return df_out, df_meta
+    return df_out
 
 ##
 ## End functions
@@ -115,7 +114,16 @@ def main(args):
         # Use default station list
         noaa_stations=fetch_data.get_noaa_stations()
         noaa_metadata='_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-        dataf, metaf = fetch_data.process_noaa_stations(time_range, noaa_stations, noaa_metadata, data_product)
+        data, meta = fetch_data.process_noaa_stations(time_range, noaa_stations, noaa_metadata, data_product)
+        df_noaa_data = format_data_frames(data) # Melt the data :s Harvester default format
+        # Output
+        try:
+            dataf=utilities.writeCsv(df_noaa_data, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=noaa_metadata)
+            metaf=utilities.writeCsv(meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=noaa_metadata)
+            utilities.log.info('NOAA data has been stored {},{}'.format(dataf,metaf))
+        except Exception as e:
+            utilities.log.error('Error: NOAA: Failed Write {}'.format(e))
+            sys.exit(1)
 
     #Contrails
     if data_source.upper()=='CONTRAILS':
@@ -134,9 +142,17 @@ def main(args):
             # Get default station list
             contrails_stations=fetch_data.get_contrails_stations(fname)
             contrails_metadata=meta+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-            dataf, metaf = fetch_data.process_contrails_stations(time_range, contrails_stations, contrails_metadata, contrails_config, data_product)
+            data, meta = fetch_data.process_contrails_stations(time_range, contrails_stations, contrails_metadata, contrails_config, data_product )
+            df_contrails_data = format_data_frames(data) # Melt: Harvester default format
         except Exception as ex:
             utilities.log.error('CONTRAILS error {}, {}'.format(template.format(type(ex).__name__, ex.args)))
+            sys.exit(1)
+        try:
+            dataf=utilities.writeCsv(df_contrails_data, rootdir=rootdir,subdir='',fileroot='contrails_stationdata',iometadata=contrails_metadata)
+            metaf=utilities.writeCsv(meta, rootdir=rootdir,subdir='',fileroot='contrails_stationdata_meta',iometadata=contrails_metadata)
+            utilities.log.info('NOAA data has been stored {},{}'.format(dataf,metaf))
+        except Exception as e:
+            utilities.log.error('Error: CONTRAILS: Failed Write {}'.format(e))
             sys.exit(1)
 
     utilities.log.info('Finished with data source {}'.format(data_source))

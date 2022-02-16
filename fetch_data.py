@@ -66,7 +66,7 @@ def get_contrails_stations(fname=os.path.join(os.path.dirname(__file__),'./confi
     contrails_stations=[word.rstrip() for word in contrails_stations[1:]] # Strip off comment line
     return contrails_stations
 
-def format_data_frames(df, df_meta):
+def format_data_frames(df) -> pd.DataFrame:
     """
     A Common formatting used by all sources
     """
@@ -75,8 +75,7 @@ def format_data_frames(df, df_meta):
     df_out=pd.melt(df, id_vars=['TIME'])
     df_out.columns=('TIME','STATION',PRODUCT.upper())
     df_out.set_index('TIME',inplace=True)
-    df_meta.index.name='STATION'
-    return df_out, df_meta
+    return df_out
 
 ##
 ## End functions
@@ -94,6 +93,7 @@ PRODUCT='water_level'
 ## Run stations
 ##
 
+
 def process_noaa_stations(time_range, noaa_stations, metadata, interval=None, data_product='water_level', resample_mins=15 ):
     # Fetch the data
     try:
@@ -103,14 +103,10 @@ def process_noaa_stations(time_range, noaa_stations, metadata, interval=None, da
         noaanos = noaanos_fetch_data(noaa_stations, time_range, data_product, interval=interval, resample_mins=resample_mins)
         df_noaa_data = noaanos.aggregate_station_data()
         df_noaa_meta = noaanos.aggregate_station_metadata()
-        df_noaa_data_out,df_noaa_meta = format_data_frames(df_noaa_data,df_noaa_meta)
-        # Save data
-        noaafile=utilities.writeCsv(df_noaa_data_out, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=metadata)
-        noaametafile=utilities.writeCsv(df_noaa_meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=metadata)
-        utilities.log.info('NOAA data has been stored {},{}'.format(noaafile,noaametafile))
+        df_noaa_meta.index.name='STATION'
     except Exception as e:
         utilities.log.error('Error: NOAA: {}'.format(e))
-    return noaafile, noaametafile
+    return df_noaa_data, df_noaa_meta
 
 def process_contrails_stations(time_range, contrails_stations, metadata, in_config, data_product='river_water_level', resample_mins=15 ):
     # Fetch the data
@@ -122,14 +118,10 @@ def process_contrails_stations(time_range, contrails_stations, metadata, in_conf
         contrails = contrails_fetch_data(contrails_stations, time_range, in_config, product=data_product, owner='NCEM', resample_mins=resample_mins)
         df_contrails_data = contrails.aggregate_station_data()
         df_contrails_meta = contrails.aggregate_station_metadata()
-        df_contrails_data_out,df_contrails_meta = format_data_frames(df_contrails_data,df_contrails_meta)
-        # Save data
-        contrailsfile=utilities.writeCsv(df_contrails_data_out, rootdir=rootdir,subdir='',fileroot='contrails_stationdata',iometadata=metadata)
-        contrailsmetafile=utilities.writeCsv(df_contrails_meta, rootdir=rootdir,subdir='',fileroot='contrails_stationdata_meta',iometadata=metadata)
-        utilities.log.info('CONTRAILS data has been stored {},{}'.format(contrailsfile,contrailsmetafile))
+        df_contrails_meta.index.name='STATION'
     except Exception as e:
         utilities.log.error('Error: CONTRAILS: {}'.format(e))
-    return contrailsfile, contrailsfile
+    return df_contrails_data, df_contrails_meta
 
 def main(args):
     """
@@ -173,12 +165,20 @@ def main(args):
         # Use default station list
         noaa_stations=get_noaa_stations()
         noaa_metadata='_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-        dataf, metaf = process_noaa_stations(time_range, noaa_stations, noaa_metadata, data_product)
+        data, meta = process_noaa_stations(time_range, noaa_stations, noaa_metadata, data_product)
+        df_noaa_data = format_data_frames(data) # Melt the data :s Harvester default format
+        # Output
+        try:
+            dataf=utilities.writeCsv(df_noaa_data, rootdir=rootdir,subdir='',fileroot='noaa_stationdata',iometadata=noaa_metadata)
+            metaf=utilities.writeCsv(meta, rootdir=rootdir,subdir='',fileroot='noaa_stationdata_meta',iometadata=noaa_metadata)
+            utilities.log.info('NOAA data has been stored {},{}'.format(dataf,metaf))
+        except Exception as e:
+            utilities.log.error('Error: NOAA: Failed Write {}'.format(e))
+            sys.exit(1)
 
     #Contrails
     if data_source.upper()=='CONTRAILS':
         # Load contrails secrets
-        #contrails_config = utilities.load_config('./secrets/contrails.yml')['DEFAULT']
         contrails_config = utilities.load_config(os.path.join(os.path.dirname(__file__),'./secrets','contrails.yml'))['DEFAULT']
         utilities.log.info('Got Contrails access information')
         template = "An exception of type {0} occurred."
@@ -195,13 +195,20 @@ def main(args):
             # Get default station list
             contrails_stations=get_contrails_stations(fname)
             contrails_metadata=meta+'_'+endtime.replace(' ','T') # +'_'+starttime.replace(' ','T')
-            dataf, metaf = process_contrails_stations(time_range, contrails_stations, contrails_metadata, contrails_config, data_product )
+            data, meta = process_contrails_stations(time_range, contrails_stations, contrails_metadata, contrails_config, data_product )
+            df_contrails_data = format_data_frames(data) # Melt: Harvester default format
         except Exception as ex:
             utilities.log.error('CONTRAILS error {}, {}'.format(template.format(type(ex).__name__, ex.args)))
             sys.exit(1)
+        try:
+            dataf=utilities.writeCsv(df_contrails_data, rootdir=rootdir,subdir='',fileroot='contrails_stationdata',iometadata=contrails_metadata)
+            metaf=utilities.writeCsv(meta, rootdir=rootdir,subdir='',fileroot='contrails_stationdata_meta',iometadata=contrails_metadata)
+            utilities.log.info('NOAA data has been stored {},{}'.format(dataf,metaf))
+        except Exception as e:
+            utilities.log.error('Error: CONTRAILS: Failed Write {}'.format(e))
+            sys.exit(1)
 
     utilities.log.info('Finished with data source {}'.format(data_source))
-    utilities.log.info('Data file {}, meta file {}'.format(dataf,metaf))
     utilities.log.info('Finished')
 
 if __name__ == '__main__':
