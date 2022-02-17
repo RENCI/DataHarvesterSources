@@ -66,11 +66,15 @@ def stations_resample(df, sample_mins=None)->pd.DataFrame:
 
     Input:
         df: A time series x stations data frame
-        sample_min. A numerical value for th enumber of mins to resample
+        sample_min. (Dafaut=15mins) A numerical value for th enumber of mins to resample
+            setting to 0 disables any resampling and returns the raw data
 
     Output:
         df_out. New time series every 15mins x stations
     """
+    if sample_mins==0:
+        utilities.log.info('resample freq set to 0. return all')
+        return df
     timesample='15min'
     if sample_mins is not None:
         timesample=f'{sample_mins}min'
