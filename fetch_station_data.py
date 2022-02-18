@@ -95,8 +95,7 @@ def stations_interpolate(df)->pd.DataFrame:
         df_out. New time series every 15mins x stations
     """
     utilities.log.info('Interpolating station data' )
-    df.interpolate(method='polynomial', order=1, limit=1)
-    return df 
+    return df.interpolate(method='polynomial', order=1, limit=1)
 
 class fetch_station_data(object):
     """
