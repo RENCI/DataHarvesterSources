@@ -69,7 +69,7 @@ def checkAdvisory(value):
     utilities.log.info('URL state_hurricane is {}'.format(state_hurricane))
     return state_hurricane
 
-def checkIfHurricane(url):
+def check_if_hurricane(url):
     """
     Very simple procedure but requires using the ASGS nomenclature
     """
@@ -77,7 +77,7 @@ def checkIfHurricane(url):
     state_hurricane = checkAdvisory(words[-6])
     return state_hurricane
 
-def convertInputURLToNowcast(url):
+def convert_inputURL_to_nowcast(url):
     """
     Though one could call this method using a nowcast url, occasionally we want to be able to
     only pass a forecast type url and, from that, figure out what the corresponding nowcast url might be.
@@ -123,7 +123,7 @@ def process_adcirc_stations(url, adcirc_stations, gridname, instance, metadata, 
         utilities.log.error('Error: ADCIRC: {}'.format(e))
     return df_adcirc_data, df_adcirc_meta 
 
-def stripTimeFromURL(url):
+def strip_time_from_url(url):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "time" information will be in position .split('/')[-6]
     eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
@@ -134,7 +134,7 @@ def stripTimeFromURL(url):
     ttime=words[-6] # Always count from the back. NOTE if a hurrican this could be an advisory number.
     return ttime
 
-def stripInstanceFromURL(url):
+def strip_instance_from_urlg(url):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "instance" information will be in position .split('/')[-2]
     eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
@@ -146,7 +146,7 @@ def stripInstanceFromURL(url):
     instance=words[-2] # Usually nowcast,forecast, etc 
     return instance
 
-def grabGridnameFromURL(url):
+def grab_gridname_from_url(url):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "grid" information will be in position .split('/')[-2]
     eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
@@ -185,7 +185,7 @@ def main(args):
 
     if args.convertToNowcast:
         utilities.log.info('Requested conversion to Nowcast')
-        url = convertInputURLToNowcast(url)
+        url = convert_inputURL_to_nowcast(url)
 
     data_product = args.data_product
     if data_product != 'water_level':
@@ -195,19 +195,19 @@ def main(args):
         utilities.log.info('Chosen data source {}'.format(data_source))
 
     # Check if this is a Hurricane
-    if not checkIfHurricane(url):
+    if not check_if_hurricane(url):
         utilities.log.error('URL is not a Hurricane advisory')
         #sys.exit(1)
-        urltimeStr = stripTimeFromURL(url)
+        urltimeStr = strip_time_from_url(url)
         urltime = dt.datetime.strptime(urltimeStr,'%Y%m%d%H')
         runtime=dt.datetime.strftime(urltime, dformat)
     else:
         utilities.log.error('URL is a Hurricane')
-        urladvisory = stripTimeFromURL(url)
+        urladvisory = strip_time_from_url(url)
         runtime=urladvisory
 
-    instance = stripInstanceFromURL(url) 
-    gridname = grabGridnameFromURL(url)
+    instance = strip_instance_from_urlg(url) 
+    gridname = grab_gridname_from_url(url)
 
     ##
     ## Start the processing
