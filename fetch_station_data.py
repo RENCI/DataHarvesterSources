@@ -216,7 +216,7 @@ class adcirc_fetch_data(fetch_station_data):
     products={ 'water_level':'water_level'  # 6 min
             }
 
-    def _removeEmptyURLPointers(self, in_periods):
+    def _remove_empty_url_pointers(self, in_periods):
         """
         Loop through the entire list and remove any entries that thorw a File Not Found error
         """
@@ -229,7 +229,7 @@ class adcirc_fetch_data(fetch_station_data):
                 utilities.log.info('URL not found: Remove url {}'.format(url))
         return new_periods
 
-    def typeADCIRCCast(self, url, df):
+    def type_ADCIRC_cast(self, url, df):
         """
         Compute the URL starttime value to the time range in df. Ascertain if this
         job is a forecast or a nowcast type.
@@ -278,7 +278,7 @@ class adcirc_fetch_data(fetch_station_data):
             utilities.log.error('No valid fort.61 files were found: Abort')
             #sys.exit(1)
         utilities.log.info('List of ADCIRC generated stations {}'.format(available_stations))
-        periods = self._removeEmptyURLPointers(periods)
+        periods = self._remove_empty_url_pointers(periods)
         super().__init__(available_stations, periods, resample_mins=resample_mins) # Pass in the full dict
 
     def _fetch_adcirc_nodes_from_stations(self, stations, periods) -> OrderedDict():
@@ -375,7 +375,7 @@ class adcirc_fetch_data(fetch_station_data):
                 dx = pd.DataFrame(data, columns=[str(node)], index=t)
                 dx.columns=[station]
                 dx.index.name='TIME'
-                typeCast_status.append(self.typeADCIRCCast(url, dx))
+                typeCast_status.append(self.type_ADCIRC_cast(url, dx))
                 # Now some fudging to account for Pandas timestamp capability changes
                 dx.index = pd.to_datetime(dx.index.astype(str)) # New pandas can only do this to strings now
                 datalist.append(dx)
