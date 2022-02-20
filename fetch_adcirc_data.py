@@ -50,7 +50,7 @@ def format_data_frames(df):
     return df_out
 
 # The hurricane methods are for the future
-def checkAdvisory(value):
+def check_advisory(value):
     """
     Try to ensure if an advisory number was passed
     """
@@ -69,15 +69,24 @@ def checkAdvisory(value):
     utilities.log.info('URL state_hurricane is {}'.format(state_hurricane))
     return state_hurricane
 
-def check_if_hurricane(url):
+def check_if_hurricane(urls):
     """
     Very simple procedure but requires using the ASGS nomenclature
+    Only need to check one valid url
     """
-    words=url.split('/')
-    state_hurricane = checkAdvisory(words[-6])
+    if not isinstance(urls, list):
+        utilities.log.error('time: URLs must be in list form')
+        sys.exit(1)
+    for url in urls:
+        try:
+            words=url.split('/')
+            state_hurricane = check_advisory(words[-6])
+            break
+        except IndexError as e:
+            utilities.log.error('check_if_hurricane Uexpected failure try next:{}'.format(e))
     return state_hurricane
 
-def convert_inputURL_to_nowcast(url):
+def convert_input_url_to_nowcast(urls):
     """
     Though one could call this method using a nowcast url, occasionally we want to be able to
     only pass a forecast type url and, from that, figure out what the corresponding nowcast url might be.
@@ -87,11 +96,16 @@ def convert_inputURL_to_nowcast(url):
     To use this feature:
     We mandate that the url is used to access ASGS data. The "instance" information will be in position .split('/')[-2]
     """
-    urlwords=url.split('/')
-    urlwords[-2]='nowcast'
-    newurl='/'.join(urlwords)
+    if not isinstance(urls, list):
+        utilities.log.error('nowcast: URLs must be in list form')
+        sys.exit(1)
+    newurls=list()
+    for url in urls:
+        urlwords=url.split('/')
+        urlwords[-2]='nowcast'
+        newurls.append('/'.join(urlwords))
     utilities.log.info('Modified input URL to be a nowcast type')
-    return newurl
+    return newurls
 
 ##
 ## End functions
@@ -109,32 +123,39 @@ PRODUCT='water_level'
 ## Run stations
 ##
 
-def process_adcirc_stations(url, adcirc_stations, gridname, instance, metadata, data_product='water_level'):
+def process_adcirc_stations(urls, adcirc_stations, gridname, instance, metadata, data_product='water_level'):
     # Fetch the data
     try:
         if data_product != 'water_level':
             utilities.log.error('ADCIRC data product can only be: water_level')
             sys.exit(1)
-
-        adcirc = adcirc_fetch_data(adcirc_stations, url, data_product, gridname=gridname, castType=instance.rstrip())
+        adcirc = adcirc_fetch_data(adcirc_stations, urls, data_product, gridname=gridname, castType=instance.rstrip())
         df_adcirc_data = adcirc.aggregate_station_data()
         df_adcirc_meta = adcirc.aggregate_station_metadata()
     except Exception as e:
         utilities.log.error('Error: ADCIRC: {}'.format(e))
     return df_adcirc_data, df_adcirc_meta 
 
-def strip_time_from_url(url):
+def strip_time_from_url(urls):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "time" information will be in position .split('/')[-6]
     eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
     
     Return time string in either ASGS formatted '%Y%m%d%H' or possibly as a hurricane advisory string (to be checked later)
     """
-    words = url.split('/')
-    ttime=words[-6] # Always count from the back. NOTE if a hurrican this could be an advisory number.
+    if not isinstance(urls, list):
+        utilities.log.error('time: URLs must be in list form')
+        sys.exit(1)
+    for url in urls:
+        try:
+            words = url.split('/')
+            ttime=words[-6] # Always count from the back. NOTE if a hurrican this could be an advisory number.
+            break
+        except IndexError as e:
+            utilities.log.error('strip_time_from_url Uexpected failure try next:{}'.format(e))
     return ttime
 
-def strip_instance_from_urlg(url):
+def strip_instance_from_url(urls):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "instance" information will be in position .split('/')[-2]
     eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
@@ -142,11 +163,19 @@ def strip_instance_from_urlg(url):
     Return:
         Instance string
     """
-    words = url.split('/')
-    instance=words[-2] # Usually nowcast,forecast, etc 
+    if not isinstance(urls, list):
+        utilities.log.error('instance: URLs must be in list form')
+        sys.exit(1)
+    for url in urls:
+        try:
+            words = url.split('/')
+            instance=words[-2] # Usually nowcast,forecast, etc 
+            break
+        except IndexError as e:
+            utilities.log.error('strip_instance_from_url Uexpected failure try next:{}'.format(e))
     return instance
 
-def grab_gridname_from_url(url):
+def grab_gridname_from_url(urls):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "grid" information will be in position .split('/')[-2]
     eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
@@ -154,8 +183,16 @@ def grab_gridname_from_url(url):
     Return:
         grid.upper() string
     """
-    words = url.split('/')
-    grid=words[-5] # Usually nowcast,forecast, etc 
+    if not isinstance(urls, list):
+        utilities.log.error('gridname: URLs must be in list form')
+        sys.exit(1)
+    for url in urls:
+        try:
+            words = url.split('/')
+            grid=words[-5] # Usually nowcast,forecast, etc 
+            break
+        except IndexError as e:
+            utilities.log.error('strip_gridname_from_url Uexpected failure try next:{}'.format(e))
     return grid.upper()
 
 def main(args):
@@ -183,9 +220,13 @@ def main(args):
         utilities.log.error('No URL was specified: Abort')
         sys.exit(1)
 
+    if not isinstance(url, list):
+        utilities.log.error('gridname: URLs must be in list form: Converting')
+        urls = [url]
+
     if args.convertToNowcast:
         utilities.log.info('Requested conversion to Nowcast')
-        url = convert_inputURL_to_nowcast(url)
+        urls = convert_input_url_to_nowcast(urls)
 
     data_product = args.data_product
     if data_product != 'water_level':
@@ -195,19 +236,19 @@ def main(args):
         utilities.log.info('Chosen data source {}'.format(data_source))
 
     # Check if this is a Hurricane
-    if not check_if_hurricane(url):
+    if not check_if_hurricane(urls):
         utilities.log.error('URL is not a Hurricane advisory')
         #sys.exit(1)
-        urltimeStr = strip_time_from_url(url)
+        urltimeStr = strip_time_from_url(urls)
         urltime = dt.datetime.strptime(urltimeStr,'%Y%m%d%H')
         runtime=dt.datetime.strftime(urltime, dformat)
     else:
         utilities.log.error('URL is a Hurricane')
-        urladvisory = strip_time_from_url(url)
+        urladvisory = strip_time_from_url(urls)
         runtime=urladvisory
 
-    instance = strip_instance_from_urlg(url) 
-    gridname = grab_gridname_from_url(url)
+    instance = strip_instance_from_url(urls)  # Only need to check on of them
+    gridname = grab_gridname_from_url(urls)   # ditto
 
     ##
     ## Start the processing
@@ -220,7 +261,6 @@ def main(args):
     #ASGS
     if data_source.upper()=='ASGS':
         excludedStations=list()
-        urls=[url] # Can be directly used by NOAA 
         # Use default station list
         adcirc_stations=get_adcirc_stations()
         adcirc_metadata='_'+instance+'_'+gridname.upper()+'_'+runtime.replace(' ','T')
