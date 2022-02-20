@@ -8,6 +8,8 @@
 #
 #
 
+## Use first_true method
+
 import os,sys
 import pandas as pd
 import datetime as dt
@@ -123,13 +125,13 @@ PRODUCT='water_level'
 ## Run stations
 ##
 
-def process_adcirc_stations(urls, adcirc_stations, gridname, instance, metadata, data_product='water_level'):
+def process_adcirc_stations(urls, adcirc_stations, gridname, instance, metadata, data_product='water_level', resample_mins=0):
     # Fetch the data
     try:
         if data_product != 'water_level':
             utilities.log.error('ADCIRC data product can only be: water_level')
             sys.exit(1)
-        adcirc = adcirc_fetch_data(adcirc_stations, urls, data_product, gridname=gridname, castType=instance.rstrip())
+        adcirc = adcirc_fetch_data(adcirc_stations, urls, data_product, gridname=gridname, castType=instance.rstrip(), resample_mins=resample_mins)
         df_adcirc_data = adcirc.aggregate_station_data()
         df_adcirc_meta = adcirc.aggregate_station_metadata()
     except Exception as e:
@@ -194,6 +196,18 @@ def grab_gridname_from_url(urls):
         except IndexError as e:
             utilities.log.error('strip_gridname_from_url Uexpected failure try next:{}'.format(e))
     return grid.upper()
+
+def grab_first_url_from_urllist(urls):
+    """
+    eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
+    
+    Return:
+    """
+    if not isinstance(urls, list):
+        utilities.log.error('first url: URLs must be in list form')
+        sys.exit(1)
+    url = first_true(urls)
+    return url
 
 def main(args):
     """
