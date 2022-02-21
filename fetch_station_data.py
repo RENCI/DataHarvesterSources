@@ -258,7 +258,6 @@ class adcirc_fetch_data(fetch_station_data):
             utilities.log.error('Error: {}'.format(e))
             sys.exit(1)
 
-
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
                 datum='MSL', gridname='None', castType='None', resample_mins=15):
@@ -559,7 +558,7 @@ class noaanos_fetch_data(fetch_station_data):
             df_data = np.nan
         return df_data
 
-# TODO The NOAA metadata scheme is Horrible for what we need. This example is very tentative 
+# TODO The NOAA metadata 
     def fetch_single_metadata(self, station) -> pd.DataFrame:
         """
         For a single NOAA site_id fetch the associated metadata.

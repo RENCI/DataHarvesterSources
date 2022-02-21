@@ -94,7 +94,7 @@ def convert_input_url_to_nowcast(urls):
     the constructed url. Either it exists or this methiod exits(1)
 
     To use this feature:
-    We mandate that the url is used to access ASGS data. The "instance" information will be in position .split('/')[-2]
+    We mandate that the url is used to access ASGS data. The "ensemble" information will be in position .split('/')[-2]
     """
     if not isinstance(urls, list):
         utilities.log.error('nowcast: URLs must be in list form')
@@ -123,13 +123,13 @@ PRODUCT='water_level'
 ## Run stations
 ##
 
-def process_adcirc_stations(urls, adcirc_stations, gridname, instance, metadata, data_product='water_level', resample_mins=0):
+def process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, metadata, data_product='water_level', resample_mins=0):
     # Fetch the data
     try:
         if data_product != 'water_level':
             utilities.log.error('ADCIRC data product can only be: water_level')
             sys.exit(1)
-        adcirc = adcirc_fetch_data(adcirc_stations, urls, data_product, gridname=gridname, castType=instance.rstrip(), resample_mins=resample_mins)
+        adcirc = adcirc_fetch_data(adcirc_stations, urls, data_product, gridname=gridname, castType=ensemble.rstrip(), resample_mins=resample_mins)
         df_adcirc_data = adcirc.aggregate_station_data()
         df_adcirc_meta = adcirc.aggregate_station_metadata()
     except Exception as e:
@@ -164,21 +164,21 @@ def strip_time_from_url(urls):
         utilities.log.error('strip_time_from_url Uexpected failure try next:{}'.format(e))
     return ttime
 
-def strip_instance_from_url(urls):
+def strip_ensemble_from_url(urls):
     """
-    We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "instance" information will be in position .split('/')[-2]
+    We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "ensemble" information will be in position .split('/')[-2]
     eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
     
     Return:
-        Instance string
+        Ensemble string
     """
     url = grab_first_url_from_urllist(urls)
     try:
         words = url.split('/')
-        instance=words[-2] # Usually nowcast,forecast, etc 
+        ensemble=words[-2] # Usually nowcast,forecast, etc 
     except IndexError as e:
-        utilities.log.error('strip_instance_from_url Uexpected failure try next:{}'.format(e))
-    return instance
+        utilities.log.error('strip_ensemble_from_url Uexpected failure try next:{}'.format(e))
+    return ensemble
 
 def grab_gridname_from_url(urls):
     """
@@ -260,7 +260,7 @@ def main(args):
         urladvisory = strip_time_from_url(urls)
         runtime=urladvisory
 
-    instance = strip_instance_from_url(urls)  # Only need to check on of them
+    ensemble = strip_ensemble_from_url(urls)  # Only need to check on of them
     gridname = grab_gridname_from_url(urls)   # ditto
 
     ##
@@ -276,8 +276,8 @@ def main(args):
         excludedStations=list()
         # Use default station list
         adcirc_stations=get_adcirc_stations()
-        adcirc_metadata='_'+instance+'_'+gridname.upper()+'_'+runtime.replace(' ','T')
-        data, meta = process_adcirc_stations(urls, adcirc_stations, gridname, instance, adcirc_metadata, data_product)
+        adcirc_metadata='_'+ensemble+'_'+gridname.upper()+'_'+runtime.replace(' ','T')
+        data, meta = process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, adcirc_metadata, data_product)
         df_adcirc_data = format_data_frames(data)
         # Output 
         try:
