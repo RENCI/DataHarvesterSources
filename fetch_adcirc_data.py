@@ -8,8 +8,6 @@
 #
 #
 
-## Use first_true method
-
 import os,sys
 import pandas as pd
 import datetime as dt
@@ -138,6 +136,19 @@ def process_adcirc_stations(urls, adcirc_stations, gridname, instance, metadata,
         utilities.log.error('Error: ADCIRC: {}'.format(e))
     return df_adcirc_data, df_adcirc_meta 
 
+def first_true(iterable, default=False, pred=None):
+    """
+    itertools recipe found in the Python 3 docs
+    Returns the first true value in the iterable.
+    If no true value is found, returns *default*
+    If *pred* is not None, returns the first item
+    for which pred(item) is true.
+
+    first_true([a,b,c], x) --> a or b or c or x
+    first_true([a,b], x, f) --> a if f(a) else b if f(b) else x
+    """
+    return next(filter(pred, iterable), default)
+
 def strip_time_from_url(urls):
     """
     We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "time" information will be in position .split('/')[-6]
@@ -145,16 +156,12 @@ def strip_time_from_url(urls):
     
     Return time string in either ASGS formatted '%Y%m%d%H' or possibly as a hurricane advisory string (to be checked later)
     """
-    if not isinstance(urls, list):
-        utilities.log.error('time: URLs must be in list form')
-        sys.exit(1)
-    for url in urls:
-        try:
-            words = url.split('/')
-            ttime=words[-6] # Always count from the back. NOTE if a hurrican this could be an advisory number.
-            break
-        except IndexError as e:
-            utilities.log.error('strip_time_from_url Uexpected failure try next:{}'.format(e))
+    url = grab_first_url_from_urllist(urls)
+    try:
+        words = url.split('/')
+        ttime=words[-6] # Always count from the back. NOTE if a hurrican this could be an advisory number.
+    except IndexError as e:
+        utilities.log.error('strip_time_from_url Uexpected failure try next:{}'.format(e))
     return ttime
 
 def strip_instance_from_url(urls):
@@ -165,16 +172,12 @@ def strip_instance_from_url(urls):
     Return:
         Instance string
     """
-    if not isinstance(urls, list):
-        utilities.log.error('instance: URLs must be in list form')
-        sys.exit(1)
-    for url in urls:
-        try:
-            words = url.split('/')
-            instance=words[-2] # Usually nowcast,forecast, etc 
-            break
-        except IndexError as e:
-            utilities.log.error('strip_instance_from_url Uexpected failure try next:{}'.format(e))
+    url = grab_first_url_from_urllist(urls)
+    try:
+        words = url.split('/')
+        instance=words[-2] # Usually nowcast,forecast, etc 
+    except IndexError as e:
+        utilities.log.error('strip_instance_from_url Uexpected failure try next:{}'.format(e))
     return instance
 
 def grab_gridname_from_url(urls):
@@ -185,16 +188,12 @@ def grab_gridname_from_url(urls):
     Return:
         grid.upper() string
     """
-    if not isinstance(urls, list):
-        utilities.log.error('gridname: URLs must be in list form')
-        sys.exit(1)
-    for url in urls:
-        try:
-            words = url.split('/')
-            grid=words[-5] # Usually nowcast,forecast, etc 
-            break
-        except IndexError as e:
-            utilities.log.error('strip_gridname_from_url Uexpected failure try next:{}'.format(e))
+    url = grab_first_url_from_urllist(urls)
+    try:
+        words = url.split('/')
+        grid=words[-5] # Usually nowcast,forecast, etc 
+    except IndexError as e:
+        utilities.log.error('strip_gridname_from_url Uexpected failure try next:{}'.format(e))
     return grid.upper()
 
 def grab_first_url_from_urllist(urls):
@@ -229,14 +228,14 @@ def main(args):
         utilities.log.error('Invalid data source {}'.format(data_source))
         sys.exit(1)
 
-    url = args.url
-    if url==None:
+    urls = args.url
+    if urls==None:
         utilities.log.error('No URL was specified: Abort')
         sys.exit(1)
 
-    if not isinstance(url, list):
-        utilities.log.error('gridname: URLs must be in list form: Converting')
-        urls = [url]
+    if not isinstance(urls, list):
+        utilities.log.error('urls: URLs must be in list form: Converting')
+        urls = [urls]
 
     if args.convertToNowcast:
         utilities.log.info('Requested conversion to Nowcast')
@@ -299,7 +298,7 @@ if __name__ == '__main__':
                         help='List currently supported data sources')
     parser.add_argument('--data_source', action='store', dest='data_source', default='ASGS', type=str,
                         help='choose supported data source: default = ASGS')
-    parser.add_argument('--url', action='store', dest='url', default=None, type=str,
+    parser.add_argument('--url', nargs='+', action='store', dest='url', default=None, type=str,
                         help='ASGS url to fetcb ADCIRC data')
     parser.add_argument('--data_product', action='store', dest='data_product', default='water_level', type=str,
                         help='choose supported data product: default is water_level')
