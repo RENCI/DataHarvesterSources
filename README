@@ -62,7 +62,7 @@ for a given TIME, one could have nowcasts and forecasts.
 # The filename nomclature is as follows. Ensemble is generally arbitrary input but is usually nowcast,forecast. The starttime
 # is read form the url. To know with certainty if these are nowcasts or forecasts requires looking into the associated metadata file 
 
-adcirc_stationdata_{instance}_{gridname}_{starttime}.csv
+adcirc_stationdata_{ensemble}_{gridname}_{starttime}.csv
 
 #Examples
 
