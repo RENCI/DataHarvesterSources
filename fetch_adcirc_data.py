@@ -228,7 +228,7 @@ def main(args):
         utilities.log.error('Invalid data source {}'.format(data_source))
         sys.exit(1)
 
-    urls = args.url
+    urls = args.urls
     if urls==None:
         utilities.log.error('No URL was specified: Abort')
         sys.exit(1)
@@ -298,7 +298,7 @@ if __name__ == '__main__':
                         help='List currently supported data sources')
     parser.add_argument('--data_source', action='store', dest='data_source', default='ASGS', type=str,
                         help='choose supported data source: default = ASGS')
-    parser.add_argument('--url', nargs='+', action='store', dest='url', default=None, type=str,
+    parser.add_argument('--urls', nargs='+', action='store', dest='url', default=None, type=str,
                         help='ASGS url to fetcb ADCIRC data')
     parser.add_argument('--data_product', action='store', dest='data_product', default='water_level', type=str,
                         help='choose supported data product: default is water_level')
