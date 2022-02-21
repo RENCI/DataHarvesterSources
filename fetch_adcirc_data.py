@@ -298,7 +298,7 @@ if __name__ == '__main__':
                         help='List currently supported data sources')
     parser.add_argument('--data_source', action='store', dest='data_source', default='ASGS', type=str,
                         help='choose supported data source: default = ASGS')
-    parser.add_argument('--urls', nargs='+', action='store', dest='url', default=None, type=str,
+    parser.add_argument('--urls', nargs='+', action='store', dest='urls', default=None, type=str,
                         help='ASGS url to fetcb ADCIRC data')
     parser.add_argument('--data_product', action='store', dest='data_product', default='water_level', type=str,
                         help='choose supported data product: default is water_level')
