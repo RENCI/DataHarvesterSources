@@ -55,11 +55,11 @@ where {group} only applies to contrails. Examples include:
 The resulting output filenames include additional filename metadata to account for the possibility that 
 for a given TIME, one could have nowcasts and forecasts.
 
-# The filenames ands associated metadata need to report if the data are a NOWCAT oir a FORECAST indepedend of the url INSTANCE name.
+# The filenames ands associated metadata need to report if the data are a NOWCAT oir a FORECAST indepedend of the url ENSEMBLE name.
 # So the fetcher code now makes that determination by looking at the input STOPTIME in the url and Checking the last time entry in the fetched data set
 # If the STOPTIME is <  last time entryh then it is assumed to be a FORECAST else a NOWCAST. No mixed scenarios are assumed
 
-# The filename nomclature is as follows. Instance is generally arbitrary inputy but is usually nowcast,forecast. The starttime
+# The filename nomclature is as follows. Ensemble is generally arbitrary input but is usually nowcast,forecast. The starttime
 # is read form the url. To know with certainty if these are nowcasts or forecasts requires looking into the associated metadata file 
 
 adcirc_stationdata_{instance}_{gridname}_{starttime}.csv
@@ -118,7 +118,7 @@ http://tds.site.org/thredds/dodsC/2022/nam/2022011600/hsofs/machine.renci.org/hs
 url.split('/') gives rise to
 where [-6] must include the TIME (%Y%m%d%H)
       [-5] must be the GRIDNAME (case independent. hsofs, ec95d, etc.)
-      [-2] must be the INSTANCE name (eg nowcasty, forecast, veerrright, etc)
+      [-2] must be the ENSEMBLE name (eg nowcasty, forecast, veerrright, etc)
 
 TIME will be used in subsequent output filenameing regardsless of itr being nowcast or forecast.
 Check the associated metadata['NAME'] file for this status ( or compare to the provided timeseries) 
