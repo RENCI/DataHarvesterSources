@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 #
-# We intentionally have time ranges that are overlapping
+# A class suitable for use by ADDA,APSVIZ2,Reanalysis to fetch ADCIRC water levels from the ASGS
+# The ASGS inputs to this class is a list of URLs. If you require running this by specifying TIMES, 
+# then you must preprocess the data into a list of URLs.
 #
-# ensemble: An arbitrary string. According to a cursory look at tds, this has values such as:
-#    nowcast, nhc0fcl, veerright, etc. So we will set the following defaults:
-# grid: hsofs,ec95d,etc
-#
-#
+# TODO Check into the case where ADCIRC returns completely empty stations. This filtering may have been 
+# turned off n the Harvester codes.
 
 import os,sys
 import pandas as pd
@@ -179,6 +178,22 @@ def strip_ensemble_from_url(urls):
     except IndexError as e:
         utilities.log.error('strip_ensemble_from_url Uexpected failure try next:{}'.format(e))
     return ensemble
+
+def strip_instance_from_url(urls):
+    """
+    We mandate that the URLs input to this fetcher are those used to access the ASGS data. The "instance" information will be in position .split('/')[-3]
+    eg. 'http://tds.renci.org/thredds/dodsC/2021/nam/2021052318/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.63.nc'
+    
+    Return:
+        Instance string
+    """
+    url = grab_first_url_from_urllist(urls)
+    try:
+        words = url.split('/')
+        instance=words[-3] # Usually nowcast,forecast, etc 
+    except IndexError as e:
+        utilities.log.error('strip_instance_from_url Uexpected failure try next:{}'.format(e))
+    return instance 
 
 def grab_gridname_from_url(urls):
     """
