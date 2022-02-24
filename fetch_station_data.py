@@ -208,9 +208,20 @@ class fetch_station_data(object):
 
 class adcirc_fetch_data(fetch_station_data):
     """
+    Fetching WL data from ADCIRC can be done in one of two ways. The default approach is based
+    on the fort.61.nc type solution where lat/lons/WL are extracted from the ADCIRC netCDF4 directly. This
+    approach simply requires a list of stationids to query. This returns WLs that are interpolations of the ADCIRC
+    grid data.
+
+    An alternative approach is based on using fort.63.nc data. To use the fort.63_style approach requires a more
+    informative inputy list of stations that is a dataframe with columns stationid and nodeid where nodeid is the pre-established
+    grid-specific ADCIRC nodeid corresponding to the station.. Required minimum column headers: (stationid, Node)
+
     Input:
         station_id_list: list of station_ids to pass to ADCIRC
         periods: list of valid ADCIRC urls tuples (*63.nc,*.61.nc) for aggregation 
+        fort63_style: (bool) If True use the fort.63-based approach
+                    If True then station_id_list: a CSV file containing columns of, at least, stationid and nodeid. 
     """
     # dict( persistant tag: source speciific tag )
     products={ 'water_level':'water_level'  # 6 min
@@ -260,7 +271,8 @@ class adcirc_fetch_data(fetch_station_data):
 
 #TODO change name periods to urls
     def __init__(self, station_id_list, periods=None, product='water_level',
-                datum='MSL', gridname='None', castType='None', resample_mins=15):
+                datum='MSL', gridname='None', castType='None', resample_mins=15,
+                fort63_style=False):
         self._product=product
         #self._interval=interval 
         self._units='metric'
@@ -272,7 +284,13 @@ class adcirc_fetch_data(fetch_station_data):
         if gridname=='None':
             utilities.log.info('ADCIRC: gridname not specified. Will result in poor metadata NAME value') 
         self._gridname=gridname
-        available_stations = self._fetch_adcirc_nodes_from_stations(station_id_list, periods)
+
+        if fort63_style:
+            utilities.log.info('Fetch station ids using fort.63 style')
+            available_stations = self._fetch_adcirc_nodes_from_fort63_input_file(station_id_list)
+        else:
+            utilities.log.info('Fetch station ids using fort.61 style')
+            available_stations = self._fetch_adcirc_nodes_from_stations(station_id_list, periods)
         if available_stations==None:
             utilities.log.error('No valid fort.61 files were found: Abort')
             #sys.exit(1)
@@ -280,7 +298,34 @@ class adcirc_fetch_data(fetch_station_data):
         periods = self._remove_empty_url_pointers(periods)
         super().__init__(available_stations, periods, resample_mins=resample_mins) # Pass in the full dict
 
-    def _fetch_adcirc_nodes_from_stations(self, stations, periods) -> OrderedDict():
+    def _fetch_adcirc_nodes_from_fort63_input_file(self, station_df) -> list():
+        """
+        have one or more of the requested urls. So we keep checking urls for stations until no more
+        urls exist. If none, then die.
+
+        The Node index is DEPRECATED by one to better share subsequent code
+
+        Input:
+            station_csv <str>. A list of station ids/Nodes in DataFrame format
+            periods <list>. The list of url-63 values. 
+
+        Return: list of tuples (stationid,nodeid). Superfluous stationids are ignored
+        """
+        utilities.log.info('Attempt to find ADCIRC fort_63 stations/Nodes')
+        try:
+            idx=list()
+            utilities.log.info('Fetch stations fort63 style: {} ')
+            print(station_df)
+            station_df['NodeMinusOne']=station_df["Node"]-1 # decrease nodeid by one to mimic the fort.61 indexing in subsequent code
+            station_ids = station_df["stationid"].tolist()
+            node_idx = station_df["NodeMinusOne"].tolist()
+            idx = (list(zip(station_ids, node_idx)))
+            return idx
+        except Exception as e:
+            utilities.log.error('fort_63_style. Input file problematic {} {}: Abort'.format(station_df, e))
+            sys.exit(1)
+
+    def _fetch_adcirc_nodes_from_stations(self, stations, periods) -> list(): 
         """
         periods contains all the possible urls. We do this because TDS may or may not actually
         have one or more of the requested urls. So we keep checking urls for stations until no more
@@ -293,6 +338,7 @@ class adcirc_fetch_data(fetch_station_data):
         Return: list of tuples (stationid,nodeid). Superfluous stationids are ignored
         """
         utilities.log.info('Attempt to find ADCIRC stations')
+        full_idx=list()
         for url61 in periods:
             utilities.log.info('Fetch stations: {} '.format(url61))
             try:
@@ -317,13 +363,18 @@ class adcirc_fetch_data(fetch_station_data):
                     else:
                         utilities.log.info("{} not in fort.61.nc station_name list".format(s))
                         ##sys.exit(1)
-                return idx # Need this to get around loop structure in aggregate etch 
+                # Remove duplicate tuples that were found across multiple URLs in the periods
+                # return idx # Need this to get around loop structure in aggregate etch 
             except OSError:
                 utilities.log.warn("Could not open/read a specific fort.61 URL. Try next iteration {}".format(url61))
             except Exception:
                 utilities.log.error('Could not find ANY fort.61 urls from which to get stations lists')
                 utilities.log.info('Bottomed out in _fetch_adcirc_nodes_from_stations')
                 raise
+            full_idx+=idx
+        # Remove any duplicate tuples eg if len(periods) > 1
+        full_idx = list(set([i for i in full_idx]))
+        return full_idx
         #return np.nan
 
 ##
@@ -558,7 +609,7 @@ class noaanos_fetch_data(fetch_station_data):
             df_data = np.nan
         return df_data
 
-# TODO The NOAA metadata 
+# TODO The NOAA metadata scheme is Horrible for what we need. This example is very tentative 
     def fetch_single_metadata(self, station) -> pd.DataFrame:
         """
         For a single NOAA site_id fetch the associated metadata.

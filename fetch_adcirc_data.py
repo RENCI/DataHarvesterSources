@@ -7,6 +7,9 @@
 # TODO Check into the case where ADCIRC returns completely empty stations. This filtering may have been 
 # turned off n the Harvester codes.
 
+# Note: using fort.63.nc is much slower than fort.61.nc
+#
+
 import os,sys
 import pandas as pd
 import datetime as dt
@@ -131,7 +134,6 @@ PRODUCT='water_level'
 ##
 ## Run stations
 ##
-
 def process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, metadata, data_product='water_level', resample_mins=0, fort63_style=False):
     # Fetch the data
     try:
