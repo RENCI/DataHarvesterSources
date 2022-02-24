@@ -23,10 +23,20 @@ rootdir=utilities.fetchBasedir(main_config['DEFAULT']['RDIR'], basedirExtra='')
 # Currently supported sources
 SOURCES = ['ASGS']
 
+def get_adcirc_stations_fort63_style(fname='./config/CERA_NOAA_HSOFS_stations_V3.1.csv'):
+    """
+    Simply read a list of stations from a csv file.
+    This gets read into a DataFrame. File MUST contain at least Node and stationid columns
+    """
+    df = pd.read_csv(fname, index_col=0, header=0, skiprows=[1], sep=',')
+    df["stationid"]=df["stationid"].astype(str)
+    df["Node"]=df["Node"].astype(int)
+    return df
+
 def get_adcirc_stations(fname='./config/adcirc_stations.txt'):
     """
     Simply read a list of stations from a txt file.
-    Generally, we simply com,bine NOAA and COntrails into a single list. It is okay to include stations not likely to exist since
+    Generally, we simply combine NOAA and Contrails into a single list. It is okay to include stations not likely to exist since
     the processing stage will simply remove them
 
     """
@@ -122,13 +132,13 @@ PRODUCT='water_level'
 ## Run stations
 ##
 
-def process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, metadata, data_product='water_level', resample_mins=0):
+def process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, metadata, data_product='water_level', resample_mins=0, fort63_style=False):
     # Fetch the data
     try:
         if data_product != 'water_level':
             utilities.log.error('ADCIRC data product can only be: water_level')
             sys.exit(1)
-        adcirc = adcirc_fetch_data(adcirc_stations, urls, data_product, gridname=gridname, castType=ensemble.rstrip(), resample_mins=resample_mins)
+        adcirc = adcirc_fetch_data(adcirc_stations, urls, data_product, gridname=gridname, castType=ensemble.rstrip(), resample_mins=resample_mins, fort63_style=fort63_style)
         df_adcirc_data = adcirc.aggregate_station_data()
         df_adcirc_meta = adcirc.aggregate_station_metadata()
     except Exception as e:
@@ -275,6 +285,9 @@ def main(args):
         urladvisory = strip_time_from_url(urls)
         runtime=urladvisory
 
+    if args.fort63_style:
+        utilities.log.info('Fort_63 style station inputs specified')
+
     ensemble = strip_ensemble_from_url(urls)  # Only need to check on of them
     gridname = grab_gridname_from_url(urls)   # ditto
 
@@ -290,9 +303,12 @@ def main(args):
     if data_source.upper()=='ASGS':
         excludedStations=list()
         # Use default station list
-        adcirc_stations=get_adcirc_stations()
+        if args.fort63_style:
+            adcirc_stations=get_adcirc_stations_fort63_style()
+        else:
+            adcirc_stations=get_adcirc_stations()
         adcirc_metadata='_'+ensemble+'_'+gridname.upper()+'_'+runtime.replace(' ','T')
-        data, meta = process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, adcirc_metadata, data_product)
+        data, meta = process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, adcirc_metadata, data_product, fort63_style=args.fort63_style)
         df_adcirc_data = format_data_frames(data)
         # Output 
         try:
@@ -319,5 +335,7 @@ if __name__ == '__main__':
                         help='choose supported data product: default is water_level')
     parser.add_argument('--convertToNowcast', action='store_true',
                         help='Attempts to force input URL into a nowcast url assuming normal ASGS conventions')
+    parser.add_argument('--fort63_style', action='store_true', 
+                        help='Boolean: Will inform Harvester to use fort.63.methods to get station nodesids')
     args = parser.parse_args()
     sys.exit(main(args))
