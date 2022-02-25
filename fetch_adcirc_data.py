@@ -7,9 +7,6 @@
 # TODO Check into the case where ADCIRC returns completely empty stations. This filtering may have been 
 # turned off n the Harvester codes.
 
-# Note: using fort.63.nc is much slower than fort.61.nc
-#
-
 import os,sys
 import pandas as pd
 import datetime as dt
@@ -36,7 +33,7 @@ def get_adcirc_stations_fort63_style(fname='./config/CERA_NOAA_HSOFS_stations_V3
     df["Node"]=df["Node"].astype(int)
     return df
 
-def get_adcirc_stations(fname='./config/adcirc_stations.txt'):
+def get_adcirc_stations_fort61_style(fname='./config/adcirc_stations.txt'):
     """
     Simply read a list of stations from a txt file.
     Generally, we simply combine NOAA and Contrails into a single list. It is okay to include stations not likely to exist since
@@ -134,6 +131,7 @@ PRODUCT='water_level'
 ##
 ## Run stations
 ##
+
 def process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, metadata, data_product='water_level', resample_mins=0, fort63_style=False):
     # Fetch the data
     try:
@@ -308,9 +306,10 @@ def main(args):
         if args.fort63_style:
             adcirc_stations=get_adcirc_stations_fort63_style()
         else:
-            adcirc_stations=get_adcirc_stations()
+            adcirc_stations=get_adcirc_stations_fort61_style()
+
         adcirc_metadata='_'+ensemble+'_'+gridname.upper()+'_'+runtime.replace(' ','T')
-        data, meta = process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, adcirc_metadata, data_product, fort63_style=args.fort63_style)
+        data, meta = process_adcirc_stations(urls, adcirc_stations, gridname, ensemble, adcirc_metadata, data_product, resample_mins=0, fort63_style=args.fort63_style)
         df_adcirc_data = format_data_frames(data)
         # Output 
         try:

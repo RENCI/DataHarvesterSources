@@ -290,7 +290,7 @@ class adcirc_fetch_data(fetch_station_data):
             available_stations = self._fetch_adcirc_nodes_from_fort63_input_file(station_id_list)
         else:
             utilities.log.info('Fetch station ids using fort.61 style')
-            available_stations = self._fetch_adcirc_nodes_from_stations(station_id_list, periods)
+            available_stations = self._fetch_adcirc_nodes_from_fort61_input_file(station_id_list, periods)
         if available_stations==None:
             utilities.log.error('No valid fort.61 files were found: Abort')
             #sys.exit(1)
@@ -315,7 +315,6 @@ class adcirc_fetch_data(fetch_station_data):
         try:
             idx=list()
             utilities.log.info('Fetch stations fort63 style: {} ')
-            print(station_df)
             station_df['NodeMinusOne']=station_df["Node"]-1 # decrease nodeid by one to mimic the fort.61 indexing in subsequent code
             station_ids = station_df["stationid"].tolist()
             node_idx = station_df["NodeMinusOne"].tolist()
@@ -325,7 +324,7 @@ class adcirc_fetch_data(fetch_station_data):
             utilities.log.error('fort_63_style. Input file problematic {} {}: Abort'.format(station_df, e))
             sys.exit(1)
 
-    def _fetch_adcirc_nodes_from_stations(self, stations, periods) -> list(): 
+    def _fetch_adcirc_nodes_from_fort61_input_file(self, stations, periods) -> list(): 
         """
         periods contains all the possible urls. We do this because TDS may or may not actually
         have one or more of the requested urls. So we keep checking urls for stations until no more
@@ -369,7 +368,7 @@ class adcirc_fetch_data(fetch_station_data):
                 utilities.log.warn("Could not open/read a specific fort.61 URL. Try next iteration {}".format(url61))
             except Exception:
                 utilities.log.error('Could not find ANY fort.61 urls from which to get stations lists')
-                utilities.log.info('Bottomed out in _fetch_adcirc_nodes_from_stations')
+                utilities.log.info('Bottomed out in _fetch_adcirc_nodes_from_fort61_input_file')
                 raise
             full_idx+=idx
         # Remove any duplicate tuples eg if len(periods) > 1
