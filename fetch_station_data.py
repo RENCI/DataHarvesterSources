@@ -18,7 +18,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import datetime as dt
-from datetime import timedelta
 from utilities.utilities import utilities
 import math
 
@@ -757,11 +756,11 @@ class contrails_fetch_data(fetch_station_data):
         init_min = 60-math.floor(time_start.minute)-1
         init_sec = 60-math.floor(time_start.second)-1
     
-        oneSecond=timedelta(seconds=1) # An update interval shift
+        oneSecond=dt.timedelta(seconds=1) # An update interval shift
     
         subrange_start = time_start
         while subrange_start < time_end:
-            interval = timedelta(hours=init_hour, minutes=init_min, seconds=init_sec)
+            interval = dt.timedelta(hours=init_hour, minutes=init_min, seconds=init_sec)
             subrange_end=min(subrange_start+interval,time_end) # Need a variable interval to prevent a day-span  
             periods.append( (dt.datetime.strftime(subrange_start,dformat),dt.datetime.strftime(subrange_end,dformat)) )
             subrange_start=subrange_end+oneSecond # onehourint
