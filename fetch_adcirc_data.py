@@ -11,8 +11,6 @@ import os,sys
 import pandas as pd
 import datetime as dt
 import math
-from datetime import timedelta
-import datetime as dt
 
 from fetch_station_data import adcirc_fetch_data
 from utilities.utilities import utilities as utilities

@@ -17,8 +17,6 @@ import os,sys
 import pandas as pd
 import datetime as dt
 import math
-from datetime import timedelta
-import datetime as dt
 
 from fetch_station_data import noaanos_fetch_data, contrails_fetch_data
 from utilities.utilities import utilities as utilities
@@ -148,7 +146,7 @@ def main(args):
     else:
         time_stop=dt.datetime.now()
 
-    time_start=time_stop+timedelta(days=args.ndays) # How many days BACK
+    time_start=time_stop+dt.timedelta(days=args.ndays) # How many days BACK
 
     starttime=dt.datetime.strftime(time_start, dformat)
     endtime=dt.datetime.strftime(time_stop, dformat)
