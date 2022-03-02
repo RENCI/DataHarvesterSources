@@ -23,9 +23,6 @@
 import os,sys
 import pandas as pd
 import datetime as dt
-import math
-from datetime import timedelta
-import datetime as dt
 
 from fetch_station_data import adcirc_fetch_data, noaanos_fetch_data, contrails_fetch_data
 from utilities.utilities import utilities as utilities
@@ -264,7 +261,7 @@ def main(args):
     utilities.log.info('Got Contrails access information')
     print('Contrails {}'.format(contrails_config))
 
-    time_start=time_stop+timedelta(days=args.ndays) # How many days BACK
+    time_start=time_stop+dt.timedelta(days=args.ndays) # How many days BACK
     starttime=dt.datetime.strftime(time_start, dformat)
     endtime=dt.datetime.strftime(time_stop, dformat)
     #starttime='2021-12-08 12:00:00'

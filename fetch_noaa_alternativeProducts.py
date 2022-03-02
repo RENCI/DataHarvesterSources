@@ -12,7 +12,6 @@
 import os,sys
 import pandas as pd
 import datetime as dt
-import math
 
 import fetch_data as fetch_data
 

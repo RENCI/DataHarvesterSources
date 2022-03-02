@@ -14,8 +14,6 @@ import os,sys
 import pandas as pd
 import math
 import datetime as dt
-from datetime import timedelta
-from datetime import datetime as dt
 
 from fetch_station_data import contrails_fetch_data, contrails_fetch_data
 from utilities.utilities import utilities as utilities
@@ -45,7 +43,7 @@ def main(args):
         time_stop=dt.strptime(args.stoptime,dformat)
     else:
         time_stop=dt.now()
-    time_start=time_stop-timedelta(days=ndays)
+    time_start=time_stop-dt.timedelta(days=ndays)
     starttime=dt.strftime(time_start, dformat)
     endtime=dt.strftime(time_stop, dformat)
     time_range=(starttime,endtime) # A time_range tuple

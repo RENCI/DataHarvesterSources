@@ -16,7 +16,6 @@
 import os,sys
 import pandas as pd
 import datetime as dt
-import math
 
 from fetch_station_data import noaanos_fetch_data, contrails_fetch_data
 from utilities.utilities import utilities as utilities
